@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Presentes</title>
+    <meta name="description" content="Lista de presentes do casamento." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="topo">
+      <div class="container nav">
+        <nav aria-label="Navegação principal">
+          <ul class="nav-list">
+            <li><a href="./index.html#casamento" data-i18n="nav.casamento">O Casamento</a></li>
+            <li><a href="./index.html#local" data-i18n="nav.local">Local</a></li>
+            <li><a href="./index.html#itinerario" data-i18n="nav.itinerario">Itinerário</a></li>
+            <li><a href="./index.html#rsvp" data-i18n="nav.confirmar">Confirmar presença</a></li>
+            <li><a href="./presentes.html" data-i18n="nav.presentes">Presentes</a></li>
+            <li class="nav-lang">
+              <div class="lang-control" aria-label="Selecionar idioma">
+                <button class="lang-button" aria-haspopup="listbox" aria-expanded="false" id="lang-button">
+                  <span id="current-flag" class="flag flag-pt" aria-hidden="true"></span>
+                  <span class="sr-only">PT</span>
+                </button>
+                <ul class="lang-menu" role="listbox" aria-labelledby="lang-button">
+                  <li role="option" data-lang="pt" aria-selected="true">
+                    <span class="flag flag-pt" aria-hidden="true"></span>
+                    <span class="lang-text">PT</span>
+                  </li>
+                  <li role="option" data-lang="en" aria-selected="false">
+                    <span class="flag flag-en" aria-hidden="true"></span>
+                    <span class="lang-text">EN</span>
+                  </li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="presentes" class="section" aria-labelledby="presentes-heading">
+        <div class="container">
+          <h1 id="presentes-heading" class="section-title" data-i18n="presentes.title">Lista de presentes</h1>
+          <p class="section-intro" data-i18n="presentes.intro">
+            Se desejar nos presentear, você pode escolher uma das opções abaixo. Obrigado pelo carinho!
+          </p>
+
+          <div class="gift-grid">
+            <article class="gift-card">
+              <div class="gift-image-placeholder"></div>
+              <h3 class="gift-title">Jogo de talheres</h3>
+              <p class="gift-price">R$ 200</p>
+              <a class="btn btn-ghost" href="#" target="_blank" rel="noopener">Ver opção</a>
+            </article>
+            <article class="gift-card">
+              <div class="gift-image-placeholder"></div>
+              <h3 class="gift-title">Conjunto de taças</h3>
+              <p class="gift-price">R$ 150</p>
+              <a class="btn btn-ghost" href="#" target="_blank" rel="noopener">Ver opção</a>
+            </article>
+            <article class="gift-card">
+              <div class="gift-image-placeholder"></div>
+              <h3 class="gift-title">Aparelho de jantar</h3>
+              <p class="gift-price">R$ 350</p>
+              <a class="btn btn-ghost" href="#" target="_blank" rel="noopener">Ver opção</a>
+            </article>
+          </div>
+
+          <p class="fine-print" style="margin-top: 16px;">
+            <a href="./index.html" data-i18n="presentes.voltar">Voltar para a página inicial</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p><span data-i18n="footer.comCarinho">Com carinho,</span> <span class="couple-names-footer">Nome & Nome</span></p>
+        <p class="fine-print">© <span id="year"></span> <span data-i18n="footer.direitos">Todos os direitos reservados</span></p>
+      </div>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+  </html>
+
+
