@@ -1,0 +1,387 @@
+/* ====== Design tokens ====== */
+:root {
+  --bg: #fbf6e9; /* papel aquarelado quente */
+  --bg-muted: rgba(255, 255, 255, 0.55);
+  --card: rgba(255, 255, 255, 0.85);
+  --text: #2f3a3f;
+  --text-muted: #5f6d6a;
+  --primary: #2f6fa1; /* azul das janelas */
+  --primary-600: #285f8a;
+  --primary-700: #214f72;
+  --border: #e5dcc7;
+  --shadow: 0 10px 25px rgba(47, 58, 63, 0.07);
+}
+
+/* ====== Base ====== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img, svg, video, canvas, audio, iframe {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.section {
+  padding: 72px 0;
+}
+
+.section-muted {
+  background: var(--bg-muted);
+}
+
+.section-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 20px 0;
+}
+
+.section-intro {
+  margin: 0 0 28px 0;
+  color: var(--text-muted);
+}
+
+/* ====== Header / Nav ====== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(251, 246, 233, 0.8);
+  backdrop-filter: saturate(1.2) blur(10px);
+  border-bottom: 1px solid rgba(229, 220, 199, 0.6);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.brand {
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.nav-list {
+  display: flex;
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list a {
+  text-decoration: none;
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.nav-list a:hover {
+  background: var(--bg-muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.04s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border-color: transparent;
+}
+
+.btn-primary:hover {
+  background: var(--primary-600);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+/* ====== Hero ====== */
+.hero {
+  background-image:
+    linear-gradient(to bottom, rgba(255,255,255,0.72), rgba(255,255,255,0.55)),
+    url("./assets/fazenda-aquarela.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.hero-content {
+  text-align: center;
+  padding: 36px 0 8px 0;
+}
+
+.couple-names {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 48px;
+  line-height: 1.1;
+  margin: 0 0 10px 0;
+  letter-spacing: 0.2px;
+}
+
+.wedding-meta {
+  margin: 0 0 14px 0;
+  color: var(--text-muted);
+}
+
+.wedding-subtitle {
+  max-width: 700px;
+  margin: 0 auto 20px auto;
+  color: var(--text-muted);
+}
+
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ====== About ====== */
+.about {
+  display: grid;
+  gap: 12px;
+}
+
+.about-text {
+  color: var(--text-muted);
+  max-width: 72ch;
+}
+
+/* ====== Local ====== */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.venue-name {
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+.venue-address {
+  margin: 0 0 18px 0;
+  color: var(--text-muted);
+}
+
+.info-list {
+  display: grid;
+  gap: 14px;
+}
+
+.info-item h3 {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+}
+
+.hotel-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+}
+
+.map-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  min-height: 320px;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  border: 0;
+}
+
+.map-actions {
+  margin-top: 14px;
+}
+
+/* ====== Timeline ====== */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.timeline-item .time {
+  font-feature-settings: "tnum" on, "lnum" on;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary-700);
+  font-weight: 600;
+}
+
+.timeline-item .content {
+  padding-left: 16px;
+  border-left: 2px solid var(--border);
+}
+
+.timeline-item .content h3 {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+}
+
+.timeline-item .content p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* ====== Form ====== */
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form-row {
+  display: grid;
+  gap: 16px;
+}
+
+.form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.form-field label {
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  outline: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.form-field textarea {
+  height: auto;
+  padding: 12px;
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(140,108,247,0.15);
+}
+
+.field-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.form-feedback {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* ====== Footer ====== */
+.site-footer {
+  padding: 36px 0 48px 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.fine-print {
+  font-size: 14px;
+}
+
+/* ====== Responsive ====== */
+@media (min-width: 720px) {
+  .hero-inner {
+    min-height: 72vh;
+  }
+  .couple-names {
+    font-size: 64px;
+  }
+  .grid-2 {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 28px;
+  }
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+

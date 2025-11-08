@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>O Casamento</title>
+    <meta name="description" content="Site oficial do nosso casamento: informações, local, itinerário e confirmação de presença." />
+    <meta property="og:title" content="Nosso Casamento" />
+    <meta property="og:description" content="Informações do casamento, local, itinerário e RSVP." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#2f6fa1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="topo">
+      <div class="container nav">
+        <a class="brand" href="#casamento" aria-label="Ir para O Casamento">O Casamento</a>
+        <nav aria-label="Navegação principal">
+          <ul class="nav-list">
+            <li><a href="#casamento">O casamento</a></li>
+            <li><a href="#local">Local</a></li>
+            <li><a href="#itinerario">Itinerário</a></li>
+            <li><a class="btn btn-primary" href="#rsvp">Confirmar presença</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- O Casamento -->
+      <section id="casamento" class="section hero" aria-labelledby="casamento-heading">
+        <div class="container hero-inner">
+          <div class="hero-content">
+            <h1 id="casamento-heading" class="couple-names">Nome & Nome</h1>
+            <p class="wedding-meta">
+              <span class="wedding-date">Data</span>
+              •
+              <span class="wedding-time">Horário</span>
+              •
+              <span class="wedding-location">Local</span>
+            </p>
+            <p class="wedding-subtitle">
+              Estamos muito felizes em compartilhar este momento com você. Abaixo você encontra todas as informações sobre o grande dia!
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#rsvp">Confirmar presença</a>
+              <a class="btn btn-ghost" href="#local">Ver local</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-muted">
+        <div class="container">
+          <div class="about">
+            <h2 class="section-title">Sobre o casamento</h2>
+            <p class="about-text">
+              Será uma celebração intimista e cheia de amor, com cerimônia seguida de recepção. Prepare-se para uma noite especial com
+              família e amigos, boa música e momentos inesquecíveis.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Local -->
+      <section id="local" class="section" aria-labelledby="local-heading">
+        <div class="container grid-2">
+          <div>
+            <h2 id="local-heading" class="section-title">Local</h2>
+            <p id="venue-name" class="venue-name">Nome do Espaço</p>
+            <p id="venue-address" class="venue-address">Endereço completo do local</p>
+            <div class="info-list">
+              <div class="info-item">
+                <h3>Como chegar</h3>
+                <p>Recomendamos transporte por aplicativo ou taxi. Há pontos de referência próximos e fácil acesso.</p>
+              </div>
+              <div class="info-item">
+                <h3>Estacionamento</h3>
+                <p>Informe se há valet, estacionamento próprio ou opções na rua.</p>
+              </div>
+              <div class="info-item">
+                <h3>Hotéis próximos</h3>
+                <ul class="hotel-list">
+                  <li>Hotel 1 — a X min do local</li>
+                  <li>Hotel 2 — a Y min do local</li>
+                  <li>Hotel 3 — a Z min do local</li>
+                </ul>
+              </div>
+            </div>
+            <div class="map-actions">
+              <a id="google-maps-link" class="btn btn-ghost" target="_blank" rel="noopener" href="#">Abrir no Google Maps</a>
+            </div>
+          </div>
+          <div class="map-card">
+            <iframe
+              id="google-maps-iframe"
+              title="Mapa do local"
+              class="map"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              src="">
+            </iframe>
+          </div>
+        </div>
+      </section>
+
+      <!-- Itinerário -->
+      <section id="itinerario" class="section section-muted" aria-labelledby="itinerario-heading">
+        <div class="container">
+          <h2 id="itinerario-heading" class="section-title">Itinerário</h2>
+          <ol class="timeline" aria-label="Cronograma do evento">
+            <li class="timeline-item">
+              <div class="time">16:30</div>
+              <div class="content">
+                <h3>Chegada dos convidados</h3>
+                <p>Recepção e acomodação dos convidados.</p>
+              </div>
+            </li>
+            <li class="timeline-item">
+              <div class="time">17:00</div>
+              <div class="content">
+                <h3>Cerimônia</h3>
+                <p>Início da cerimônia no espaço principal.</p>
+              </div>
+            </li>
+            <li class="timeline-item">
+              <div class="time">18:00</div>
+              <div class="content">
+                <h3>Coquetel</h3>
+                <p>Brinde e fotos com os noivos.</p>
+              </div>
+            </li>
+            <li class="timeline-item">
+              <div class="time">19:30</div>
+              <div class="content">
+                <h3>Jantar</h3>
+                <p>Serviço de jantar aos convidados.</p>
+              </div>
+            </li>
+            <li class="timeline-item">
+              <div class="time">21:00</div>
+              <div class="content">
+                <h3>Festa</h3>
+                <p>Vamos celebrar juntos com música e dança!</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- RSVP -->
+      <section id="rsvp" class="section" aria-labelledby="rsvp-heading">
+        <div class="container">
+          <h2 id="rsvp-heading" class="section-title">Confirmar presença</h2>
+          <p class="section-intro">
+            Por favor, confirme sua presença para nos ajudar na organização. Obrigado!
+          </p>
+          <form id="rsvp-form" class="form" novalidate>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="presenca">Presença</label>
+                <select id="presenca" name="presenca" required>
+                  <option value="" selected disabled>Selecione uma opção</option>
+                  <option value="Confirmo presença">Confirmo presença</option>
+                  <option value="Não poderei ir">Não poderei ir</option>
+                </select>
+                <span class="field-hint">Obrigatório</span>
+              </div>
+              <div class="form-field">
+                <label for="acompanhantes">Número de acompanhantes</label>
+                <input type="number" id="acompanhantes" name="acompanhantes" min="0" max="10" placeholder="0" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="nome">Nome completo</label>
+                <input type="text" id="nome" name="nome" autocomplete="name" required placeholder="Seu nome" />
+                <span class="field-hint">Obrigatório</span>
+              </div>
+              <div class="form-field">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" autocomplete="email" required placeholder="voce@email.com" />
+                <span class="field-hint">Obrigatório</span>
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="telefone">Telefone (opcional)</label>
+              <input type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(11) 99999-9999" />
+            </div>
+            <div class="form-field">
+              <label for="mensagem">Mensagem (opcional)</label>
+              <textarea id="mensagem" name="mensagem" rows="4" placeholder="Escreva uma mensagem para os noivos"></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Enviar confirmação</button>
+              <p id="rsvp-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>Com carinho, <span class="couple-names-footer">Nome & Nome</span></p>
+        <p class="fine-print">© <span id="year"></span> Todos os direitos reservados</p>
+        <p class="fine-print">
+          Dica: personalize nomes, data, local e e-mail no arquivo <code>script.js</code> em <code>WEDDING_CONFIG</code>.
+        </p>
+      </div>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
+
+
