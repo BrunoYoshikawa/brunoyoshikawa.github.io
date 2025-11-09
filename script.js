@@ -7,7 +7,7 @@ const WEDDING_CONFIG = {
   venueAddress: "Rodovia Arão Sahm, S/N | Mairiporã - São Paulo",
   mapsQuery: "Fazenda Fagundes, Rodovia Arão Sahm, S/N, Mairiporã - São Paulo",
   rsvpEmail: "seuemail@example.com", // Altere para o e-mail que receberá os RSVPs (fallback)
-  sheetWebhookUrl: "https://script.google.com/macros/s/AKfycbzH8sgDU8iYiBdAbe4ppF6Am_B37ztIkFnsQuC5hdUIiFX0-16TzzJYg6i2uWlqZkrB/exec", // Cole aqui a URL do Web App do Google Apps Script quando publicar
+  sheetWebhookUrl: "https://script.google.com/macros/s/AKfycbyRu4kDtvoZvDUpv0-vxQVbidC-tVOg3oy_sBkDPGNDfcG501HD2z6l5UqgGleoPwIN/exec", // Cole aqui a URL do Web App do Google Apps Script quando publicar
 };
 
 // ====== Traduções (PT/EN) ======
@@ -342,17 +342,15 @@ function setupRSVPForm() {
       return;
     }
 
-    // Envia para Apps Script (Sheets + e-mail)
+    // Envia para Apps Script (Sheets + e-mail) sem CORS/preflight
     fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json().catch(() => ({}));
-      })
       .then(() => {
+        // Resposta é "opaque" em no-cors; assumimos sucesso
         if (feedback) feedback.textContent = dict["form.feedback.success"];
         form.reset();
       })

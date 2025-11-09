@@ -25,7 +25,7 @@
           <ul class="nav-list">
             <li><a href="#casamento" data-i18n="nav.casamento">O Casamento</a></li>
             <li><a href="#local" data-i18n="nav.local">Local</a></li>
-            <li><a href="#itinerario" data-i18n="nav.itinerario">Itinerário</a></li>
+           <!-- <li><a href="#itinerario" data-i18n="nav.itinerario">Itinerário</a></li> -->
             <li><a href="#rsvp" data-i18n="nav.confirmar">Confirmar presença</a></li>
             <li><a href="./presentes.html" data-i18n="nav.presentes">Presentes</a></li>
             <li class="nav-lang">
@@ -93,20 +93,13 @@
             <p id="venue-name" class="venue-name">Nome do Espaço</p>
             <p id="venue-address" class="venue-address">Endereço completo do local</p>
             <div class="info-list">
-              <div class="info-item">
-                <h3 data-i18n="local.comoChegar.title">Como chegar</h3>
-                <p data-i18n="local.comoChegar.text">Recomendamos transporte por aplicativo ou taxi. Há pontos de referência próximos e fácil acesso.</p>
-              </div>
-              <div class="info-item">
-                <h3 data-i18n="local.estacionamento.title">Estacionamento</h3>
-                <p data-i18n="local.estacionamento.text">Informe se há valet, estacionamento próprio ou opções na rua.</p>
-              </div>
+
+
               <div class="info-item">
                 <h3 data-i18n="local.hoteis.title">Hotéis próximos</h3>
                 <ul class="hotel-list">
-                  <li data-i18n="local.hoteis.h1">Hotel 1 — a X min do local</li>
-                  <li data-i18n="local.hoteis.h2">Hotel 2 — a Y min do local</li>
-                  <li data-i18n="local.hoteis.h3">Hotel 3 — a Z min do local</li>
+                  <li><a href="https://www.google.com/maps/search/?api=1&query=Graal%20in%20Mairipor%C3%A3" target="_blank" rel="noopener">Graal in Mairiporã</a></li>
+                  <li><a href="https://www.google.com/maps/search/?api=1&query=Hotel%20Ref%C3%BAgio%20Vista%20Serrana" target="_blank" rel="noopener">Hotel Refúgio Vista Serrana</a></li>
                 </ul>
               </div>
             </div>
@@ -191,14 +184,15 @@
             </div>
             <div class="form-row">
               <div class="form-field">
-                <label for="telefone" data-i18n="form.telefone.label">Telefone</label>
-                <input type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(11) 99999-9999" data-i18n-placeholder="form.telefone.placeholder" />
-              </div>
-              <div class="form-field">
                 <label for="email" data-i18n="form.email.label">E-mail</label>
                 <input type="email" id="email" name="email" autocomplete="email" required placeholder="voce@email.com"
                   data-i18n-placeholder="form.email.placeholder" />
               </div>
+              <div class="form-field">
+                <label for="telefone" data-i18n="form.telefone.label">Telefone</label>
+                <input type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(11) 99999-9999" data-i18n-placeholder="form.telefone.placeholder" />
+              </div>
+              
             </div>
             <div class="form-field">
               <label for="mensagem" data-i18n="form.mensagem.label">Mensagem (opcional)</label>
