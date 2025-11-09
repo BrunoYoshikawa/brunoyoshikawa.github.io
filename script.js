@@ -6,7 +6,8 @@ const WEDDING_CONFIG = {
   venueName: "Fazenda Fagundes",
   venueAddress: "Rodovia Arão Sahm, S/N | Mairiporã - São Paulo",
   mapsQuery: "Fazenda Fagundes, Rodovia Arão Sahm, S/N, Mairiporã - São Paulo",
-  rsvpEmail: "seuemail@example.com", // Altere para o e-mail que receberá os RSVPs
+  rsvpEmail: "seuemail@example.com", // Altere para o e-mail que receberá os RSVPs (fallback)
+  sheetWebhookUrl: "https://script.google.com/macros/s/AKfycbzH8sgDU8iYiBdAbe4ppF6Am_B37ztIkFnsQuC5hdUIiFX0-16TzzJYg6i2uWlqZkrB/exec", // Cole aqui a URL do Web App do Google Apps Script quando publicar
 };
 
 // ====== Traduções (PT/EN) ======
@@ -66,6 +67,9 @@ const I18N = {
     "form.enviar": "Enviar confirmação",
     "form.feedback.required": "Por favor, preencha os campos obrigatórios.",
     "form.feedback.sent": "Abrimos seu aplicativo de e-mail para enviar a confirmação.",
+    "form.feedback.success": "Recebemos sua confirmação. Obrigado!",
+    "form.feedback.error": "Não foi possível enviar agora. Tente novamente em instantes.",
+    "form.feedback.missingConfig": "Configuração de envio ausente. Avise os noivos, por favor.",
     "footer.comCarinho": "Com carinho,",
     "footer.direitos": "Todos os direitos reservados",
   },
@@ -124,6 +128,9 @@ const I18N = {
     "form.enviar": "Send RSVP",
     "form.feedback.required": "Please fill out the required fields.",
     "form.feedback.sent": "We opened your email app to send the RSVP.",
+    "form.feedback.success": "We received your RSVP. Thank you!",
+    "form.feedback.error": "We couldn't send now. Please try again shortly.",
+    "form.feedback.missingConfig": "Submission configuration missing. Please notify the couple.",
     "footer.comCarinho": "With love,",
     "footer.direitos": "All rights reserved",
   },
@@ -172,6 +179,49 @@ function select(el) {
   return document.querySelector(el);
 }
 
+// ====== Helpers: Localize date/time ======
+function toEnglishDate(ptDateStr) {
+  if (!ptDateStr || typeof ptDateStr !== "string") return ptDateStr;
+  const monthMap = {
+    janeiro: "January",
+    fevereiro: "February",
+    março: "March",
+    marco: "March",
+    abril: "April",
+    maio: "May",
+    junho: "June",
+    julho: "July",
+    agosto: "August",
+    setembro: "September",
+    outubro: "October",
+    novembro: "November",
+    dezembro: "December",
+  };
+  const m = ptDateStr
+    .toLowerCase()
+    .match(/^\s*(\d{1,2})\s+de\s+([a-zçáéíóúâêôãõ]+)\s+de\s+(\d{4})\s*$/i);
+  if (!m) return ptDateStr;
+  const day = parseInt(m[1], 10);
+  const monthPt = m[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const year = m[3];
+  const monthEn = monthMap[monthPt] || m[2];
+  return `${monthEn} ${day}, ${year}`;
+}
+
+function toEnglishTime(timeStr) {
+  if (!timeStr || typeof timeStr !== "string") return timeStr;
+  // Accept formats like "15h30", "15:30", "15h", "15"
+  const m = timeStr.match(/^\s*(\d{1,2})(?:[:hH](\d{2}))?\s*$/);
+  if (!m) return timeStr;
+  let hours = parseInt(m[1], 10);
+  const minutes = m[2] ? parseInt(m[2], 10) : 0;
+  const suffix = hours >= 12 ? "PM" : "AM";
+  if (hours === 0) hours = 12;
+  else if (hours > 12) hours -= 12;
+  const mm = String(minutes).padStart(2, "0");
+  return `${hours}:${mm} ${suffix}`;
+}
+
 // ====== Popular conteúdo com base na configuração ======
 function populateContent() {
   const {
@@ -186,8 +236,8 @@ function populateContent() {
 
   if (namesEl) namesEl.textContent = coupleNames;
   if (namesFooterEl) namesFooterEl.textContent = coupleNames;
-  if (dateEl) dateEl.textContent = date;
-  if (timeEl) timeEl.textContent = time;
+  if (dateEl) dateEl.textContent = currentLang === "en" ? toEnglishDate(date) : date;
+  if (timeEl) timeEl.textContent = currentLang === "en" ? toEnglishTime(time) : time;
   if (locationEl) locationEl.textContent = venueName;
 
   const venueNameEl = select("#venue-name");
@@ -257,7 +307,6 @@ function setupRSVPForm() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const data = new FormData(form);
-    const presenca = (data.get("presenca") || "").toString().trim();
     const acompanhantes = (data.get("acompanhantes") || "0").toString().trim();
     const nome = (data.get("nome") || "").toString().trim();
     const email = (data.get("email") || "").toString().trim();
@@ -265,7 +314,7 @@ function setupRSVPForm() {
     const mensagem = (data.get("mensagem") || "").toString().trim();
 
     // Validação simples
-    if (!presenca || !nome || !email) {
+    if (!nome || !email) {
       if (feedback) {
         const dict = I18N[currentLang] || I18N.pt;
         feedback.textContent = dict["form.feedback.required"];
@@ -273,26 +322,43 @@ function setupRSVPForm() {
       return;
     }
 
-    const subject = `RSVP - ${WEDDING_CONFIG.coupleNames} - ${presenca}`;
-    const lines = [
-      `Nome: ${nome}`,
-      `E-mail: ${email}`,
-      telefone ? `Telefone: ${telefone}` : null,
-      `Presença: ${presenca}`,
-      `Acompanhantes: ${acompanhantes || "0"}`,
-      mensagem ? `Mensagem: ${mensagem}` : null,
-    ].filter(Boolean);
-    const body = lines.join("\n");
+    const dict = I18N[currentLang] || I18N.pt;
 
-    const mailto = `mailto:${encodeRFC3986(WEDDING_CONFIG.rsvpEmail)}?subject=${encodeRFC3986(subject)}&body=${encodeRFC3986(body)}`;
+    const payload = {
+      coupleNames: WEDDING_CONFIG.coupleNames,
+      timestamp: new Date().toISOString(),
+      lang: currentLang,
+      nome,
+      email,
+      telefone,
+      acompanhantes: acompanhantes || "0",
+      mensagem,
+    };
 
-    // Abre o cliente de e-mail
-    window.location.href = mailto;
-    if (feedback) {
-      const dict = I18N[currentLang] || I18N.pt;
-      feedback.textContent = dict["form.feedback.sent"];
+    const endpoint = (WEDDING_CONFIG.sheetWebhookUrl || "").trim();
+
+    if (!endpoint) {
+      if (feedback) feedback.textContent = dict["form.feedback.missingConfig"];
+      return;
     }
-    form.reset();
+
+    // Envia para Apps Script (Sheets + e-mail)
+    fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json().catch(() => ({}));
+      })
+      .then(() => {
+        if (feedback) feedback.textContent = dict["form.feedback.success"];
+        form.reset();
+      })
+      .catch(() => {
+        if (feedback) feedback.textContent = dict["form.feedback.error"];
+      });
   });
 }
 

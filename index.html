@@ -59,8 +59,7 @@
             <h1 id="casamento-heading" class="couple-names">Nome & Nome</h1>
             <p class="wedding-meta">
               <span class="wedding-date">Data</span>
-              •
-              <span class="wedding-time">Horário</span>
+
               •
               <span class="wedding-location">Local</span>
             </p>
@@ -129,7 +128,7 @@
       </section>
 
       <!-- Itinerário -->
-      <section id="itinerario" class="section section-muted" aria-labelledby="itinerario-heading">
+      <section id="itinerario" class="section section-muted" aria-labelledby="itinerario-heading" hidden>
         <div class="container">
           <h2 id="itinerario-heading" class="section-title" data-i18n="section.itinerario">Itinerário</h2>
           <ol class="timeline" aria-label="Cronograma do evento">
@@ -182,13 +181,8 @@
           <form id="rsvp-form" class="form" novalidate>
             <div class="form-row">
               <div class="form-field">
-                <label for="presenca" data-i18n="form.presenca.label">Presença</label>
-                <select id="presenca" name="presenca" required>
-                  <option value="" selected disabled data-i18n="form.presenca.select">Selecione uma opção</option>
-                  <option value="Confirmo presença" data-i18n="form.presenca.confirmo">Confirmo presença</option>
-                  <option value="Não poderei ir" data-i18n="form.presenca.nao">Não poderei ir</option>
-                </select>
-                <span class="field-hint" data-i18n="form.obrigatorio">Obrigatório</span>
+                <label for="nome" data-i18n="form.nome.label">Nome completo</label>
+                <input type="text" id="nome" name="nome" autocomplete="name" required placeholder="Seu nome" data-i18n-placeholder="form.nome.placeholder" />
               </div>
               <div class="form-field">
                 <label for="acompanhantes" data-i18n="form.acompanhantes.label">Número de acompanhantes</label>
@@ -197,20 +191,14 @@
             </div>
             <div class="form-row">
               <div class="form-field">
-                <label for="nome" data-i18n="form.nome.label">Nome completo</label>
-                <input type="text" id="nome" name="nome" autocomplete="name" required placeholder="Seu nome" data-i18n-placeholder="form.nome.placeholder" />
-                <span class="field-hint" data-i18n="form.obrigatorio">Obrigatório</span>
+                <label for="telefone" data-i18n="form.telefone.label">Telefone</label>
+                <input type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(11) 99999-9999" data-i18n-placeholder="form.telefone.placeholder" />
               </div>
               <div class="form-field">
                 <label for="email" data-i18n="form.email.label">E-mail</label>
                 <input type="email" id="email" name="email" autocomplete="email" required placeholder="voce@email.com"
                   data-i18n-placeholder="form.email.placeholder" />
-                <span class="field-hint" data-i18n="form.obrigatorio">Obrigatório</span>
               </div>
-            </div>
-            <div class="form-field">
-              <label for="telefone" data-i18n="form.telefone.label">Telefone (opcional)</label>
-              <input type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(11) 99999-9999" data-i18n-placeholder="form.telefone.placeholder" />
             </div>
             <div class="form-field">
               <label for="mensagem" data-i18n="form.mensagem.label">Mensagem (opcional)</label>
