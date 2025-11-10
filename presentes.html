@@ -9,16 +9,24 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+      if (!window.QRCode) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.0/qrcode.min.js';
+        document.head.appendChild(s);
+      }
+    </script>
   </head>
   <body>
     <header class="site-header" id="topo">
       <div class="container nav">
         <nav aria-label="Navegação principal">
           <ul class="nav-list">
-            <li><a href="./index.html#casamento" data-i18n="nav.casamento">O Casamento</a></li>
-            <li><a href="./index.html#local" data-i18n="nav.local">Local</a></li>
-            <li hidden><a href="./index.html#itinerario" data-i18n="nav.itinerario">Itinerário</a></li>
-            <li><a href="./index.html#rsvp" data-i18n="nav.confirmar">Confirmar presença</a></li>
+            <li><a href="./home.html#casamento" data-i18n="nav.casamento">O Casamento</a></li>
+            <li><a href="./home.html#local" data-i18n="nav.local">Local</a></li>
+            <li hidden><a href="./home.html#itinerario" data-i18n="nav.itinerario">Itinerário</a></li>
+            <li><a href="./home.html#rsvp" data-i18n="nav.confirmar">Confirmar presença</a></li>
             <li><a href="./presentes.html" data-i18n="nav.presentes">Presentes</a></li>
             <li class="nav-lang">
               <div class="lang-control" aria-label="Selecionar idioma">
@@ -52,32 +60,85 @@
           </p>
 
           <div class="gift-grid">
+            <!-- Itens -->
+
+            <!-- Novos itens -->
             <article class="gift-card">
-              <div class="gift-image-placeholder"></div>
-              <h3 class="gift-title">Jogo de talheres</h3>
+              <img class="gift-image" src="./assets/panela.jpeg" alt="Jogo de panela Le Creuset" loading="lazy" />
+              <h3 class="gift-title" data-i18n="gifts.panela.title">Jogo de panela Le Creuset</h3>
+              <p class="gift-price">R$ 6.000</p>
+              <p class="gift-desc" data-i18n="gifts.panela.desc">Aumentar o nível da cozinha em casa.</p>
+              <div class="gift-actions">
+                <button type="button" class="btn btn-primary gift-pix" data-title="Jogo de panela Le Creuset" data-amount="6000" data-i18n="gifts.present">Presentear</button>
+              </div>
+            </article>
+            <article class="gift-card">
+              <img class="gift-image" src="./assets/labrador.jpeg" alt="Cachorrinho" loading="lazy" />
+              <h3 class="gift-title" data-i18n="gifts.cachorro.title">Cachorrinho</h3>
+              <p class="gift-price">R$ 4.000</p>
+              <p class="gift-desc" data-i18n="gifts.cachorro.desc">Elizabete sempre falou que gostaria de um doguinho</p>
+              <div class="gift-actions">
+                <button type="button" class="btn btn-primary gift-pix" data-title="Cachorrinho" data-amount="4000" data-i18n="gifts.present">Presentear</button>
+              </div>
+            </article>
+            <article class="gift-card">
+              <img class="gift-image" src="./assets/lego.jpeg" alt="Kit LEGO para decoração" loading="lazy" />
+              <h3 class="gift-title" data-i18n="gifts.lego.title">Kit LEGO para decoração</h3>
+              <p class="gift-price">R$ 2.000</p>
+              <p class="gift-desc" data-i18n="gifts.lego.desc">Adicionar à coleção da Elizabete na sala de estar</p>
+              <div class="gift-actions">
+                <button type="button" class="btn btn-primary gift-pix" data-title="Kit LEGO para decoracao" data-amount="2000" data-i18n="gifts.present">Presentear</button>
+              </div>
+            </article>
+            <article class="gift-card">
+              <img class="gift-image" src="./assets/oculos_corrida.jpeg" alt="Óculos de corrida" loading="lazy" />
+              <h3 class="gift-title" data-i18n="gifts.oculos.title">Óculos de corrida</h3>
+              <p class="gift-price">R$ 300</p>
+              <p class="gift-desc" data-i18n="gifts.oculos.desc">Importante para baixar o pace</p>
+              <div class="gift-actions">
+                <button type="button" class="btn btn-primary gift-pix" data-title="Oculos de corrida" data-amount="300" data-i18n="gifts.present">Presentear</button>
+              </div>
+            </article>
+            <article class="gift-card">
+              <img class="gift-image" src="./assets/aviao.jpeg" alt="Viagem NY — SP" loading="lazy" />
+              <h3 class="gift-title" data-i18n="gifts.viagem.title">Viagem NY — SP</h3>
+              <p class="gift-price">R$ 3.000</p>
+              <p class="gift-desc" data-i18n="gifts.viagem.desc">Frequente nesses últimos tempos</p>
+              <div class="gift-actions">
+                <button type="button" class="btn btn-primary gift-pix" data-title="Viagem NY - SP" data-amount="3000" data-i18n="gifts.present">Presentear</button>
+              </div>
+            </article>
+            <article class="gift-card">
+              <img class="gift-image" src="./assets/faca.png" alt="Faca de chef" loading="lazy" />
+              <h3 class="gift-title" data-i18n="gifts.faca.title">Faca de chef</h3>
               <p class="gift-price">R$ 200</p>
-              <a class="btn btn-ghost" href="#" target="_blank" rel="noopener">Ver opção</a>
-            </article>
-            <article class="gift-card">
-              <div class="gift-image-placeholder"></div>
-              <h3 class="gift-title">Conjunto de taças</h3>
-              <p class="gift-price">R$ 150</p>
-              <a class="btn btn-ghost" href="#" target="_blank" rel="noopener">Ver opção</a>
-            </article>
-            <article class="gift-card">
-              <div class="gift-image-placeholder"></div>
-              <h3 class="gift-title">Aparelho de jantar</h3>
-              <p class="gift-price">R$ 350</p>
-              <a class="btn btn-ghost" href="#" target="_blank" rel="noopener">Ver opção</a>
+              <p class="gift-desc" data-i18n="gifts.faca.desc">Necessidades básicas da cozinha</p>
+              <div class="gift-actions">
+                <button type="button" class="btn btn-primary gift-pix" data-title="Faca de chef" data-amount="200" data-i18n="gifts.present">Presentear</button>
+              </div>
             </article>
           </div>
 
-          <p class="fine-print" style="margin-top: 16px;">
-            <a href="./index.html" data-i18n="presentes.voltar">Voltar para a página inicial</a>
-          </p>
+          
         </div>
       </section>
     </main>
+
+    <!-- Modal Pix -->
+    <div id="pix-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h2>Obrigado pelo presente!</h2>
+        <p>Escaneie o QR Code abaixo para concluir o Pix:</p>
+        <div id="qrcode"></div>
+        <img id="qrcodeImg" alt="QR Code Pix" style="display:none; margin-top:8px;" />
+        <div class="gift-actions" style="justify-content:center; margin-top:8px;">
+          <a id="qrcodeDownload" class="btn btn-primary" href="#" download="pix.png">Baixar QR</a>
+          <button type="button" class="btn btn-ghost" id="pix-copy">Copiar código</button>
+        </div>
+        <p id="pixText" class="fine-print" style="word-break: break-all;"></p>
+        <button type="button" class="btn btn-ghost" id="pix-close">Fechar</button>
+      </div>
+    </div>
 
     <footer class="site-footer">
       <div class="container">

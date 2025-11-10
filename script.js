@@ -6,11 +6,12 @@ const WEDDING_CONFIG = {
   venueName: "Fazenda Fagundes",
   venueAddress: "Rodovia Arão Sahm, S/N | Mairiporã - São Paulo",
   mapsQuery: "Fazenda Fagundes, Rodovia Arão Sahm, S/N, Mairiporã - São Paulo",
-  rsvpEmail: "seuemail@example.com", // Altere para o e-mail que receberá os RSVPs (fallback)
+  rsvpEmail: "bruno.diego.yoshikawa@gmail.com", // Altere para o e-mail que receberá os RSVPs (fallback)
   sheetWebhookUrl: "https://script.google.com/macros/s/AKfycbyRu4kDtvoZvDUpv0-vxQVbidC-tVOg3oy_sBkDPGNDfcG501HD2z6l5UqgGleoPwIN/exec", // Cole aqui a URL do Web App do Google Apps Script quando publicar
+  pixKey: "8f2d4a5f-8cf9-4be9-95dd-d4d490090077",
+  pixReceiverName: "Bruno Diego Yoshikawa",
+  pixReceiverCity: "SAO PAULO",
 };
-
-// ====== Traduções (PT/EN) ======
 const I18N = {
   pt: {
     titleBase: "Nosso Casamento",
@@ -32,9 +33,6 @@ const I18N = {
     "local.estacionamento.title": "Estacionamento",
     "local.estacionamento.text": "Informe se há valet, estacionamento próprio ou opções na rua.",
     "local.hoteis.title": "Hotéis próximos",
-    "local.hoteis.h1": "Hotel 1 — a X min do local",
-    "local.hoteis.h2": "Hotel 2 — a Y min do local",
-    "local.hoteis.h3": "Hotel 3 — a Z min do local",
     "local.mapa.abrir": "Abrir no Google Maps",
     "itinerario.1.title": "Chegada dos convidados",
     "itinerario.1.text": "Recepção e acomodação dos convidados.",
@@ -50,6 +48,19 @@ const I18N = {
     "presentes.title": "Lista de presentes",
     "presentes.intro": "Se desejar nos presentear, você pode escolher uma das opções abaixo. Obrigado pelo carinho!",
     "presentes.voltar": "Voltar para a página inicial",
+    "gifts.present": "Presentear",
+    "gifts.panela.title": "Jogo de panela Le Creuset",
+    "gifts.panela.desc": "Aumentar o nível da cozinha em casa.",
+    "gifts.cachorro.title": "Cachorrinho",
+    "gifts.cachorro.desc": "Elizabete sempre falou que gostaria de um doguinho",
+    "gifts.lego.title": "Kit LEGO para decoração",
+    "gifts.lego.desc": "Adicionar à coleção da Elizabete na sala de estar",
+    "gifts.oculos.title": "Óculos de corrida",
+    "gifts.oculos.desc": "Importante para baixar o pace",
+    "gifts.viagem.title": "Viagem NY — SP",
+    "gifts.viagem.desc": "Frequente nesses últimos tempos",
+    "gifts.faca.title": "Faca de chef",
+    "gifts.faca.desc": "Necessidades básicas da cozinha",
     "form.presenca.label": "Presença",
     "form.presenca.select": "Selecione uma opção",
     "form.presenca.confirmo": "Confirmo presença",
@@ -93,9 +104,6 @@ const I18N = {
     "local.estacionamento.title": "Parking",
     "local.estacionamento.text": "Let us know if there is valet, on-site parking, or street options.",
     "local.hoteis.title": "Nearby hotels",
-    "local.hoteis.h1": "Hotel 1 — X min from venue",
-    "local.hoteis.h2": "Hotel 2 — Y min from venue",
-    "local.hoteis.h3": "Hotel 3 — Z min from venue",
     "local.mapa.abrir": "Open in Google Maps",
     "itinerario.1.title": "Guests arrival",
     "itinerario.1.text": "Reception and seating of guests.",
@@ -111,6 +119,19 @@ const I18N = {
     "presentes.title": "Gift list",
     "presentes.intro": "If you would like to give us a gift, you can choose one of the options below. Thank you for your love!",
     "presentes.voltar": "Back to home page",
+    "gifts.present": "Gift this",
+    "gifts.panela.title": "Le Creuset cookware set",
+    "gifts.panela.desc": "Level up our kitchen at home.",
+    "gifts.cachorro.title": "Puppy",
+    "gifts.cachorro.desc": "Elizabete has always wanted a little dog",
+    "gifts.lego.title": "LEGO set for decoration",
+    "gifts.lego.desc": "Add to Elizabete's living room collection",
+    "gifts.oculos.title": "Running sunglasses",
+    "gifts.oculos.desc": "Important to improve pace",
+    "gifts.viagem.title": "Trip NY — SP",
+    "gifts.viagem.desc": "Frequent in recent times",
+    "gifts.faca.title": "Chef's knife",
+    "gifts.faca.desc": "Basic kitchen needs",
     "form.presenca.label": "Attendance",
     "form.presenca.select": "Select an option",
     "form.presenca.confirmo": "I will attend",
@@ -369,6 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupHeaderScrollState();
   setupRSVPForm();
   setupLanguageSwitcherUI();
+  setupGiftsPix();
 });
 
 // ====== Language switcher UI (flags dropdown) ======
@@ -422,6 +444,207 @@ function setupLanguageSwitcherUI() {
   });
 
   render();
+}
+
+// ====== Presentes: Pix QR ======
+function setupGiftsPix() {
+  const modal = document.querySelector("#pix-modal");
+  const closeBtn = document.querySelector("#pix-close");
+  const qrcodeDiv = document.querySelector("#qrcode");
+  const pixText = document.querySelector("#pixText");
+  const qrImg = document.querySelector("#qrcodeImg");
+  const qrDownload = document.querySelector("#qrcodeDownload");
+  const copyBtn = document.querySelector("#pix-copy");
+  if (!modal || !qrcodeDiv) return; // só na página de presentes
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".gift-pix");
+    if (!btn) return;
+    const title = btn.getAttribute("data-title") || "Presente";
+    const amountStr = btn.getAttribute("data-amount") || "0";
+    const amount = Number(amountStr);
+
+    const key = WEDDING_CONFIG.pixKey || "";
+    const name = WEDDING_CONFIG.pixReceiverName || "";
+    const city = WEDDING_CONFIG.pixReceiverCity || "";
+    if (!key || !name || !city) {
+      alert("Configuração do Pix ausente. Verifique pixKey, pixReceiverName e pixReceiverCity.");
+      return;
+    }
+    const txid = "CASAMENTO" + Math.floor(Math.random() * 100000);
+    const payload = generatePixPayload(key, name, city, amount, title, txid);
+
+    // Limpa/oculta anteriores
+    qrcodeDiv.innerHTML = "";
+    qrcodeDiv.style.display = "none";
+    if (qrImg) {
+      qrImg.removeAttribute("src");
+      qrImg.style.display = "none";
+    }
+    if (window.QRCode) {
+      const applyImage = (url, filenameExt = "png") => {
+        if (!url) return false;
+        if (qrcodeDiv) {
+          qrcodeDiv.innerHTML = "";
+          qrcodeDiv.style.display = "none";
+        }
+        if (qrImg) {
+          qrImg.src = url;
+          qrImg.style.display = "block";
+        }
+        if (qrDownload) {
+          qrDownload.href = url;
+          qrDownload.download = `pix-${txid}.${filenameExt}`;
+        }
+        return true;
+      };
+      const applySvg = (svg) => {
+        if (!svg) return false;
+        if (qrImg) {
+          qrImg.removeAttribute("src");
+          qrImg.style.display = "none";
+        }
+        if (qrcodeDiv) {
+          qrcodeDiv.innerHTML = svg;
+          qrcodeDiv.style.display = "block";
+        }
+        try {
+          const blob = new Blob([svg], { type: "image/svg+xml" });
+          const url = URL.createObjectURL(blob);
+          if (qrDownload) {
+            qrDownload.href = url;
+            qrDownload.download = `pix-${txid}.svg`;
+          }
+        } catch (_e) {}
+        return true;
+      };
+      const tryDataURL = () => new Promise((resolve) => {
+        if (typeof QRCode.toDataURL !== "function") return resolve(false);
+        try {
+          const res = QRCode.toDataURL(payload, { width: 256 });
+          const done = (url) => resolve(applyImage(url, "png"));
+          if (res && typeof res.then === "function") {
+            res.then(done).catch(() => resolve(false));
+          } else if (typeof res === "string") {
+            done(res);
+          } else {
+            QRCode.toDataURL(payload, { width: 256 }, (err, url) => {
+              resolve(!err && applyImage(url, "png"));
+            });
+          }
+        } catch (_e) { resolve(false); }
+      });
+      const tryCanvas = () => new Promise((resolve) => {
+        if (typeof QRCode.toCanvas !== "function") return resolve(false);
+        try {
+          const off = document.createElement("canvas");
+          const maybe = QRCode.toCanvas(off, payload, { width: 256 });
+          const after = () => {
+            try {
+              const url = off.toDataURL("image/png");
+              resolve(applyImage(url, "png"));
+            } catch (_e) { resolve(false); }
+          };
+          if (maybe && typeof maybe.then === "function") {
+            maybe.then(after).catch(() => resolve(false));
+          } else {
+            after();
+          }
+        } catch (_e) { resolve(false); }
+      });
+      const trySvg = () => new Promise((resolve) => {
+        if (typeof QRCode.toString !== "function") return resolve(false);
+        try {
+          const resStr = QRCode.toString(payload, { type: "svg", width: 256 });
+          const done = (svg) => resolve(applySvg(svg));
+          if (resStr && typeof resStr.then === "function") {
+            resStr.then(done).catch(() => resolve(false));
+          } else if (typeof resStr === "string") {
+            done(resStr);
+          } else {
+            QRCode.toString(payload, { type: "svg", width: 256 }, (err, svg) => {
+              resolve(!err && applySvg(svg));
+            });
+          }
+        } catch (_e) { resolve(false); }
+      });
+      // Tenta em sequência para garantir apenas UMA saída
+      tryDataURL()
+        .then((ok) => ok ? true : tryCanvas())
+        .then((ok) => ok ? true : trySvg())
+        .catch(() => {});
+    }
+    if (pixText) pixText.textContent = payload;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+  });
+
+  const close = () => {
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  };
+  if (closeBtn) closeBtn.addEventListener("click", close);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) close();
+  });
+
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      const text = (pixText && pixText.textContent) || "";
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = "Copiado!";
+        setTimeout(() => (copyBtn.textContent = "Copiar código"), 1500);
+      } catch {
+        // fallback silencioso
+      }
+    });
+  }
+}
+
+function generatePixPayload(key, name, city, amount, description, txid) {
+  const sanitize = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const len2 = (v) => String(v.length).padStart(2, "0");
+  const tlv = (id, value) => id + len2(value) + value;
+
+  const gui = tlv("00", "BR.GOV.BCB.PIX");
+  const k = tlv("01", String(key));
+  const desc = description ? tlv("02", String(description).slice(0, 99)) : "";
+  const mai = tlv("26", gui + k + desc);
+
+  const pfi = tlv("00", "01");              // Payload Format Indicator
+  const pim = tlv("01", "11");              // Point of Initiation Method (11 = estático)
+  const mcc = tlv("52", "0000");            // Merchant Category Code
+  const cur = tlv("53", "986");             // Moeda = BRL (986)
+  const amtFixed = Number(amount || 0).toFixed(2);
+  const amt = amtFixed === "0.00" ? "" : tlv("54", amtFixed);
+  const country = tlv("58", "BR");          // País
+  const merchName = tlv("59", sanitize(name).slice(0, 25) || "PIX");
+  const merchCity = tlv("60", sanitize(city).slice(0, 15) || "BRASIL");
+  const addData = tlv("62", tlv("05", String(txid || "TXID").slice(0, 25)));
+
+  let payload = pfi + pim + mai + mcc + cur + amt + country + merchName + merchCity + addData;
+  // CRC
+  const partial = payload + "6304";
+  const crc = crc16(partial).toUpperCase();
+  return partial + crc;
+}
+
+// CRC16-CCITT (polinômio 0x1021, init 0xFFFF)
+function crc16(str) {
+  let crc = 0xffff;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc <<= 1;
+      }
+      crc &= 0xffff;
+    }
+  }
+  return crc.toString(16).padStart(4, "0");
 }
 
 
