@@ -27,7 +27,9 @@ const I18N = {
     "section.local": "Local",
     "section.itinerario": "Itinerário",
     "section.rsvp": "Confirmar presença",
+    "section.traje": "Como devo me vestir?",
     "about.text": "Será uma celebração intimista e cheia de amor, com cerimônia seguida de recepção. Prepare-se para uma noite especial com família e amigos, boa música e momentos inesquecíveis.",
+    "traje.text": "Traje esporte fino, confortável para cerimônia no campo. Qualquer dúvida chamar a Elizabete que ela te explicará melhor.",
     "local.comoChegar.title": "Como chegar",
     "local.comoChegar.text": "Recomendamos transporte por aplicativo ou taxi. Há pontos de referência próximos e fácil acesso.",
     "local.estacionamento.title": "Estacionamento",
@@ -98,7 +100,9 @@ const I18N = {
     "section.local": "Venue",
     "section.itinerario": "Itinerary",
     "section.rsvp": "RSVP",
+    "section.traje": "What should I wear?",
     "about.text": "It will be an intimate and loving celebration with a ceremony followed by a reception. Get ready for a special evening with family and friends, good music, and unforgettable moments.",
+    "traje.text": "Smart casual, comfortable for a countryside outdoor ceremony. If you have any questions, please contact Elizabete and she will explain.",
     "local.comoChegar.title": "How to get there",
     "local.comoChegar.text": "We recommend using ride-hailing or taxi. There are nearby landmarks and easy access.",
     "local.estacionamento.title": "Parking",
@@ -460,6 +464,14 @@ function setupGiftsPix() {
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".gift-pix");
     if (!btn) return;
+    // Se o botão tiver um link específico, usa-o; caso contrário, usa o link padrão
+    const specificLink = btn.getAttribute("data-link");
+    if (specificLink) {
+      window.location.href = specificLink;
+      return;
+    }
+    window.location.href = "https://donate.stripe.com/aFa8wPc7U22z13B7J69AA02";
+    return;
     const title = btn.getAttribute("data-title") || "Presente";
     const amountStr = btn.getAttribute("data-amount") || "0";
     const amount = Number(amountStr);
