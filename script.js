@@ -18,6 +18,7 @@ const I18N = {
     "nav.casamento": "O Casamento",
     "nav.local": "Local",
     "nav.itinerario": "Itinerário",
+    "wedding-weekday": "Domingo",
     "nav.confirmar": "Confirmar presença",
     "nav.presentes": "Presentes",
     "hero.subtitle": "Estamos muito felizes em compartilhar este momento com você. Abaixo você encontra todas as informações sobre o grande dia!",
@@ -91,6 +92,7 @@ const I18N = {
     "nav.casamento": "The Wedding",
     "nav.local": "Venue",
     "nav.itinerario": "Itinerary",
+    "wedding-weekday": "Sunday",
     "nav.confirmar": "RSVP",
     "nav.presentes": "Gifts",
     "hero.subtitle": "We are very happy to share this moment with you. Below you will find all the information about the big day!",
@@ -247,6 +249,28 @@ function toEnglishTime(timeStr) {
   return `${hours}:${mm} ${suffix}`;
 }
 
+// ====== Weekday helpers (PT/EN) ======
+function getWeekdayFromPtDate(ptDateStr) {
+  if (!ptDateStr || typeof ptDateStr !== "string") return "";
+  const months = {
+    janeiro: 0, fevereiro: 1, março: 2, marco: 2, abril: 3, maio: 4, junho: 5,
+    julho: 6, agosto: 7, setembro: 8, outubro: 9, novembro: 10, dezembro: 11,
+  };
+  const m = ptDateStr
+    .toLowerCase()
+    .match(/^\s*(\d{1,2})\s+de\s+([a-zçáéíóúâêôãõ]+)\s+de\s+(\d{4})\s*$/i);
+  if (!m) return "";
+  const day = parseInt(m[1], 10);
+  const monthPt = m[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const year = parseInt(m[3], 10);
+  const monthIdx = months[monthPt];
+  if (monthIdx == null) return "";
+  const d = new Date(year, monthIdx, day);
+  const weekdaysPt = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+  const weekdaysEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return { pt: weekdaysPt[d.getDay()], en: weekdaysEn[d.getDay()] };
+}
+
 // ====== Popular conteúdo com base na configuração ======
 function populateContent() {
   const {
@@ -262,7 +286,11 @@ function populateContent() {
   if (namesEl) namesEl.textContent = coupleNames;
   if (namesFooterEl) namesFooterEl.textContent = coupleNames;
   if (dateEl) dateEl.textContent = currentLang === "en" ? toEnglishDate(date) : date;
-  if (timeEl) timeEl.textContent = currentLang === "en" ? toEnglishTime(time) : time;
+  // Exibe horário; em PT, normaliza "15h30" -> "15:30"
+  if (timeEl) {
+    if (currentLang === "en") timeEl.textContent = toEnglishTime(time);
+    else timeEl.textContent = (time || "").toString().replace(/[hH]/, ":");
+  }
   if (locationEl) locationEl.textContent = venueName;
 
   const venueNameEl = select("#venue-name");
@@ -273,6 +301,17 @@ function populateContent() {
   // Atualiza título
   const dict = I18N[currentLang] || I18N.pt;
   document.title = `${dict.titleBase} – ${coupleNames}`;
+
+  // Dia da semana (se existir no template)
+  const weekdayEl = select(".wedding-weekday");
+  if (weekdayEl) {
+    const w = getWeekdayFromPtDate(WEDDING_CONFIG.date);
+    if (w && typeof w === "object" && w.pt && w.en) {
+      weekdayEl.textContent = currentLang === "en" ? w.en : w.pt;
+    } else if (typeof w === "string" && w.length > 0) {
+      weekdayEl.textContent = w;
+    }
+  }
 
   // Atualiza mapa
   const mapsBase = "https://www.google.com/maps";
