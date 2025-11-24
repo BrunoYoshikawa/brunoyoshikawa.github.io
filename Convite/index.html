@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Convite do Casamento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --brand:#214f72;
+        --paper:#ffffff;
+        --overlay: rgba(255,255,255,0.5);
+        --text:#214f72;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #f3f4f6;
+        color: #111827;
+        font-family: "Libre Baskerville", Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      }
+      .page {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 14px;
+        justify-content: center;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #111827;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: #fff;
+        border-color: transparent;
+      }
+      /* Cartão do convite (proporção 3:4) */
+      .card {
+        position: relative;
+        width: 900px;           /* 3 */
+        height: 1200px;         /* 4 */
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--paper);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+      }
+      .bg {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(to bottom, rgba(255,255,255,0.70), rgba(255,255,255,0.70)),
+          url("../assets/fazenda-aquarela.jpg");
+        background-size: cover; /* cobre todo o cartão sem bordas */
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        background: var(--overlay);
+        backdrop-filter: blur(1px);
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        text-align: center;
+        padding: 64px 64px 48px 64px;
+        color: var(--text);
+      }
+      .save-the-date {
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+        opacity: 0.95;
+        color: var(--brand);
+        margin-bottom: 40px; /* mais espaço até os nomes */
+        font-size: 17px;
+      }
+      .names {
+        color: var(--brand);
+        font-family: "Libre Baskerville", Georgia, serif;
+        line-height: 1.1;
+      }
+      .names h1 {
+        font-size: 100px;
+        margin: 0;
+      }
+      .amp {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 56px;                 /* nomes mais espaçados entre si */
+        margin: 24px 0 24px 0;     /* aumenta separação vertical */
+        color: var(--brand);
+      }
+      .amp .line {
+        width: 64px; height: 1px; background: rgba(33,79,114,0.4);
+      }
+      .amp .and { font-size: 60px; }
+      .invite-text {
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--brand);
+        margin-bottom: 48px; /* dobra o espaçamento abaixo */
+        font-size: 23px;
+        margin-top: -56px; /* sobe um pouco mais */
+      }
+      .date-block {
+        color: var(--brand);
+      }
+      .month {
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+        font-weight: 600;
+        margin-bottom: 18px;
+        font-size: 30px;
+      }
+      .date-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        margin-bottom: 12px;
+      }
+      .date-row .side {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 32px;
+      }
+      .date-row .side .rule {
+        width: 112px; height: 1px; background: rgba(33,79,114,0.3); margin-bottom: 14px;
+      }
+      .day {
+        font-size: 135px;
+        font-family: "Libre Baskerville", Georgia, serif;
+        font-weight: 400; /* mais fino */
+        color: var(--brand);
+        line-height: 1;
+      }
+      .year {
+        font-size: 35px;
+        font-family: "Libre Baskerville", Georgia, serif;
+        letter-spacing: 0.05em;
+      }
+      .location { margin-top: 36px; }
+      .location p { margin: 4px 0; letter-spacing: 0.02em; font-size: 34px; }
+      .bottom {
+        color: var(--brand);
+        /* não mover todo o bloco; apenas o texto (.hint) sobe */
+        margin-bottom: 120px; /* margem inferior maior para os ícones */
+      }
+      .hint {
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        margin-bottom: 48px; /* mesmo espaçamento (dobrado) até os ícones */
+        margin-top: -36px; /* sobe um pouco mais o texto "Toque..." */
+        font-size: 24px;
+      }
+      /* Ícones: usar PNG original (sem troca de cor) */
+      .icons .icon-img {
+        display: block;
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+      }
+      .icons a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: var(--brand);
+        text-decoration: none;
+      }
+      .icon-label {
+        font-size: 20px;
+        letter-spacing: 0.02em;
+      }
+      @media (max-width: 980px) {
+        .card { width: 90vw; height: calc(90vw * 4 / 3); }
+      }
+      @media print {
+        .actions { display: none !important; }
+        body { background: white; }
+        .page { padding: 0; }
+        .card { margin: 0 auto; box-shadow: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="actions">
+        <button id="downloadPdf" class="btn btn-primary">Baixar PDF</button>
+        <button onclick="window.print()" class="btn">Imprimir</button>
+      </div>
+      <div id="invitation-card" class="card">
+        <div class="bg"></div>
+        <div class="overlay"></div>
+        <div class="content">
+          <div>
+            <div class="save-the-date">Save the Date</div>
+            <div class="names">
+              <h1>Bruno</h1>
+              <div class="amp">
+                <div class="line"></div>
+                <span class="and">&</span>
+                <div class="line"></div>
+              </div>
+              <h1>Elizabete</h1>
+            </div>
+          </div>
+          <div>
+            <div class="invite-text">Convidam para celebrar seu casamento</div>
+            <div class="date-block">
+              <div class="month">Nov</div>
+              <div class="date-row">
+                <div class="side">
+                  <div class="rule"></div>
+                  <p class="side-text">Domingo</p>
+                </div>
+                <div class="day">01</div>
+                <div class="side">
+                  <div class="rule"></div>
+                  <p class="side-text">Às 15h30</p>
+                </div>
+              </div>
+              <div class="year">2026</div>
+              <div class="location">
+                <p>Fazenda Fagundes</p>
+                <p>Mairiporã, São Paulo</p>
+              </div>
+            </div>
+          </div>
+          <div class="bottom">
+            <div class="hint">Toque nos ícones para interagir:</div>
+            <div class="icons" style="display:flex; gap:48px; justify-content:center; align-items:center;">
+              <a href="https://brunoelizabete.com" target="_blank" rel="noopener" aria-label="Site">
+                <img class="icon-img" src="../assets/world-wide-web.png" alt="Site" />
+                <span class="icon-label">site</span>
+              </a>
+              <a href="https://brunoelizabete.com/home#rsvp" target="_blank" rel="noopener" aria-label="RSVP">
+                <img class="icon-img" src="../assets/rsvp.png" alt="RSVP" />
+                <span class="icon-label">RSVP</span>
+              </a>
+              <a href="https://brunoelizabete.com/presentes" target="_blank" rel="noopener" aria-label="Presentes">
+                <img class="icon-img" src="../assets/gift.png" alt="Presentes" />
+                <span class="icon-label">presentes</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+      // Gera PDF sem bordas (tamanho igual ao cartão), adiciona ícones e hyperlinks
+      document.getElementById("downloadPdf").addEventListener("click", async () => {
+        const card = document.getElementById("invitation-card");
+        const scale = Math.min(2, window.devicePixelRatio || 1) * 2;
+        const canvas = await html2canvas(card, {
+          scale,
+          useCORS: true,
+          backgroundColor: null,
+          windowWidth: card.clientWidth,
+          windowHeight: card.clientHeight
+        });
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
+        pdf.addImage(canvas, "JPEG", 0, 0, canvas.width, canvas.height, undefined, "FAST");
+
+        // Adiciona áreas clicáveis e desenha os ícones PNG por cima (para evitar limitações de mask no html2canvas)
+        const cardRect = card.getBoundingClientRect();
+        const scaleFactor = canvas.width / card.clientWidth; // converte CSS px -> unidades do PDF
+        const links = [
+          { selector: 'a[aria-label="Site"]', url: "https://brunoelizabete.com", img: "../assets/world-wide-web.png" },
+          { selector: 'a[aria-label="RSVP"]', url: "https://brunoelizabete.com/home#rsvp", img: "../assets/rsvp.png" },
+          { selector: 'a[aria-label="Presentes"]', url: "https://brunoelizabete.com/presentes", img: "../assets/gift.png" },
+        ];
+        const loadImage = (src) => new Promise((resolve, reject) => {
+          const im = new Image();
+          im.crossOrigin = "anonymous";
+          im.onload = () => resolve(im);
+          im.onerror = reject;
+          im.src = src;
+        });
+        for (const { selector, url, img } of links) {
+          const a = document.querySelector(selector);
+          if (!a) continue;
+          // Link cobre o anchor inteiro (ícone + label)
+          const ar = a.getBoundingClientRect();
+          pdf.link((ar.left - cardRect.left) * scaleFactor, (ar.top - cardRect.top) * scaleFactor, ar.width * scaleFactor, ar.height * scaleFactor, { url });
+          // Desenha o PNG somente na área do ícone (img.icon-img)
+          const icon = a.querySelector(".icon-img");
+          if (!icon) continue;
+          const r = icon.getBoundingClientRect();
+          const x = (r.left - cardRect.left) * scaleFactor;
+          const y = (r.top - cardRect.top) * scaleFactor;
+          const w = r.width * scaleFactor;
+          const h = r.height * scaleFactor;
+          try {
+            const imageEl = await loadImage(img);
+            pdf.addImage(imageEl, "PNG", x, y, w, h);
+          } catch (_) {}
+        }
+        pdf.save("Convite-Bruno-Elizabete.pdf");
+      });
+    </script>
+  </body>
+</html>
+
+

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gerar PDF do Convite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --brand:#214f72;
+        --overlay: rgba(255,255,255,0.5);
+      }
+      html, body { margin: 0; padding: 0; background: #ffffff; font-family: "Libre Baskerville", Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+      /* Cartão em proporção 3:4 — será rasterizado e inserido num PDF com o mesmo tamanho, sem bordas */
+      #card {
+        position: relative;
+        width: 900px;   /* 3 */
+        height: 1200px; /* 4 */
+        overflow: hidden;
+      }
+      .bg {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(to bottom, rgba(255,255,255,0.70), rgba(255,255,255,0.70)),
+          url("../assets/fazenda-aquarela.jpg");
+        background-size: cover; /* cobre todo o cartão */
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+      .overlay { position:absolute; inset:0; background: var(--overlay); backdrop-filter: blur(1px); }
+      .content {
+        position: relative; z-index: 1;
+        height: 100%;
+        display: flex; flex-direction: column; justify-content: space-between;
+        text-align: center;
+        padding: 64px 64px 48px 64px;
+        color: var(--brand);
+        font-family: "Libre Baskerville", Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      }
+      .save-the-date {
+        text-transform: uppercase; letter-spacing: 0.3em; opacity: 0.95; margin-bottom: 40px;  font-size: 25px
+      }
+      .names { font-family: "Libre Baskerville", Georgia, serif; line-height: 1.1; }
+      .names h1 { font-size: 80px; margin: 0; color: var(--brand); }
+      .amp { display:flex; align-items:center; justify-content:center; gap:56px; margin: 24px 0; }
+      .amp .line { width:64px; height:1px; background: rgba(33,79,114,0.4); }
+      .amp .and { font-size: 25px; }
+      .invite-text { text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 48px; font-size: 23px; margin-top: -56px; }
+      .month { text-transform: uppercase; letter-spacing: 0.3em; font-weight: 600; margin-bottom: 18px; font-size: 30px; }
+      .date-row { display:flex; align-items:center; justify-content:center; gap: 24px; margin-bottom: 12px; }
+      .side { display:flex; flex-direction:column; align-items:center; font-size: 32px; }
+      .side .rule { width:112px; height:1px; background: rgba(33,79,114,0.3); margin-bottom: 14px; }
+      .day {
+        font-size: 135px;
+        line-height: 1;
+        color: var(--brand);
+        font-family: "Libre Baskerville", Georgia, serif;
+        font-weight: 400; /* mais fino */
+      }
+      .year { font-size: 35px; font-family: "Libre Baskerville", Georgia, serif; letter-spacing: 0.05em; }
+      .location { margin-top: 36px; }
+      .location p { margin: 4px 0; letter-spacing: 0.02em; font-size: 34px; }
+      .hint { font-size: 24px; letter-spacing: 0.06em; margin-bottom: 10px; }
+      .icons { display:flex; gap: 48px; justify-content:center; align-items:center; margin-top: 6px; }
+      .bottom { margin-bottom: 120px; }
+      .hint { margin-top: -36px; margin-bottom: 48px; }
+      /* Ícones: PNG original (sem troca de cor) */
+      .icons .icon-img { display:block; width: 90px; height: 90px; object-fit: contain; }
+      .icons a { display:flex; flex-direction:column; align-items:center; gap:8px; text-decoration:none; color:var(--brand); }
+      .icon-label { font-size: 20px; letter-spacing: 0.02em; }
+    </style>
+  </head>
+  <body>
+    <!-- Canvas do convite (não é um site; apenas gera o PDF automaticamente ao abrir) -->
+    <div id="card" aria-hidden="true">
+      <div class="bg"></div>
+      <div class="overlay"></div>
+      <div class="content">
+        <div>
+          <div class="save-the-date">Save the Date</div>
+          <div class="names">
+            <h1>Bruno</h1>
+            <div class="amp"><div class="line"></div><span class="and">&</span><div class="line"></div></div>
+            <h1>Elizabete</h1>
+          </div>
+        </div>
+        <div>
+          <div class="invite-text">Convidam para celebrar seu casamento</div>
+          <div class="month">Nov</div>
+          <div class="date-row">
+            <div class="side"><div class="rule"></div><p>Domingo</p></div>
+            <div class="day">01</div>
+            <div class="side"><div class="rule"></div><p>Às 15h30</p></div>
+          </div>
+          <div class="year">2026</div>
+          <div class="location">
+            <p>Fazenda Fagundes</p>
+            <p>Mairiporã, São Paulo</p>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="hint">Toque nos ícones para interagir:</div>
+          <div class="icons">
+            <a href="https://brunoelizabete.com" target="_blank" rel="noopener" aria-label="Site">
+              <img class="icon-img" src="../assets/world-wide-web.png" alt="Site" />
+              <span class="icon-label">Site</span>
+            </a>
+            <a href="https://brunoelizabete.com/home#rsvp" target="_blank" rel="noopener" aria-label="RSVP">
+              <img class="icon-img" src="../assets/rsvp.png" alt="RSVP" />
+              <span class="icon-label">Presença</span>
+            </a>
+            <a href="https://brunoelizabete.com/presentes" target="_blank" rel="noopener" aria-label="Presentes">
+              <img class="icon-img" src="../assets/gift.png" alt="Presentes" />
+              <span class="icon-label">Presentes</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+      // Espera fontes carregarem para snapshot fiel
+      (async function generate() {
+        try {
+          if (document.fonts && document.fonts.ready) {
+            await document.fonts.ready;
+          }
+        } catch (_) {}
+        const card = document.getElementById("card");
+        const scale = Math.min(2, (window.devicePixelRatio || 1)) * 2;
+        const canvas = await html2canvas(card, {
+          scale,
+          useCORS: true,
+          backgroundColor: null,
+          windowWidth: card.clientWidth,
+          windowHeight: card.clientHeight
+        });
+        const { jsPDF } = window.jspdf;
+        // Criamos o PDF no mesmo tamanho do cartão, sem margens/bordas
+        const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
+        pdf.addImage(canvas, "JPEG", 0, 0, canvas.width, canvas.height, undefined, "FAST");
+
+        // Adiciona links clicáveis e redesenha ícones PNG por cima (para aparecerem corretamente no PDF)
+        const cardRect = card.getBoundingClientRect();
+        const scaleFactor = canvas.width / card.clientWidth;
+        const anchors = [
+          { selector: 'a[aria-label="Site"]', url: "https://brunoelizabete.com", img: "../assets/world-wide-web.png" },
+          { selector: 'a[aria-label="RSVP"]', url: "https://brunoelizabete.com/home#rsvp", img: "../assets/rsvp.png" },
+          { selector: 'a[aria-label="Presentes"]', url: "https://brunoelizabete.com/presentes", img: "../assets/gift.png" },
+        ];
+        const loadImage = (src) => new Promise((resolve, reject) => {
+          const im = new Image();
+          im.crossOrigin = "anonymous";
+          im.onload = () => resolve(im);
+          im.onerror = reject;
+          im.src = src;
+        });
+        for (const { selector, url, imgSrc } of anchors) {
+          const a = document.querySelector(selector);
+          if (!a) continue;
+          // link na área total (ícone + texto)
+          const ar = a.getBoundingClientRect();
+          pdf.link((ar.left - cardRect.left) * scaleFactor, (ar.top - cardRect.top) * scaleFactor, ar.width * scaleFactor, ar.height * scaleFactor, { url });
+          // ícone PNG somente no img.icon-img
+          const icon = a.querySelector(".icon-img");
+          if (!icon) continue;
+          const r = icon.getBoundingClientRect();
+          const x = (r.left - cardRect.left) * scaleFactor;
+          const y = (r.top - cardRect.top) * scaleFactor;
+          const w = r.width * scaleFactor;
+          const h = r.height * scaleFactor;
+          try {
+            const imageEl = await loadImage(imgSrc);
+            pdf.addImage(imageEl, "PNG", x, y, w, h);
+          } catch (_) {}
+        }
+        pdf.save("Convite-Bruno-Elizabete.pdf");
+      })();
+    </script>
+  </body>
+</html>
+
+
