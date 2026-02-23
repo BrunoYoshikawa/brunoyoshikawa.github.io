@@ -357,6 +357,27 @@ input, button, textarea, select {
   margin-top: 14px;
 }
 
+/* ====== Dress code (grid + image) ====== */
+.dress-grid {
+  display: grid;
+  gap: 16px;
+}
+.dress-card {
+  width: 100%;
+  min-height: 160px; /* menor altura */
+  order: 2;          /* no mobile, imagem abaixo do texto */
+}
+.dress-card .dress-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.dress-text { order: 1; }
+
+/* Utility: respect newline characters inside text blocks */
+.preline { white-space: pre-line; }
+
 /* ====== Timeline ====== */
 .timeline {
   list-style: none;
@@ -588,6 +609,13 @@ input, button, textarea, select {
   .form-row {
     grid-template-columns: 1fr 1fr;
   }
+  /* Dress: duas colunas no desktop */
+  .dress-grid {
+    grid-template-columns: 3fr 1fr; /* imagem ocupa 1/4 da largura */
+    align-items: start;
+  }
+  .dress-text { order: 1; }
+  .dress-card { order: 2; }
 }
 
 
