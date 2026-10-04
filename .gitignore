@@ -3,3 +3,10 @@
 
 # Claude Code (configurações locais)
 .claude/
+
+#convite
+"Convite Casamento - Anelise & Gabriel.pdf"
+# Arquivos que não devem ser publicados
+*.pdf
+.env
+.env.*

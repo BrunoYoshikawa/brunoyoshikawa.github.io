@@ -1,9 +1,26 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { firebaseConfig } from "./firebase-config.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
+import { firebaseConfig, RECAPTCHA_SITE_KEY } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
+
+// App Check: precisa ser iniciado antes de usar o Firestore.
+// Para testar localmente (localhost): cadastre um token em Firebase Console >
+// App Check > Gerenciar tokens de depuração e, no console do navegador (F12), rode
+//   localStorage.setItem("appCheckDebugToken", "<token>")
+// Sem isso, o SDK gera um token novo e o mostra no console para ser cadastrado.
+// O token NÃO fica no código: quem tem o token passa pelo App Check.
+if (RECAPTCHA_SITE_KEY) {
+  if (["localhost", "127.0.0.1"].includes(location.hostname)) {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = localStorage.getItem("appCheckDebugToken") || true;
+  }
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
 const db = getFirestore(app);
 const auth = getAuth(app);
 
