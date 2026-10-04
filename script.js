@@ -7,7 +7,10 @@ const WEDDING_CONFIG = {
   venueAddress: "Rodovia Arão Sahm, S/N | Mairiporã - São Paulo",
   mapsQuery: "Fazenda Fagundes, Rodovia Arão Sahm, S/N, Mairiporã - São Paulo",
   rsvpEmail: "bruno.diego.yoshikawa@gmail.com", // Altere para o e-mail que receberá os RSVPs (fallback)
-  pixKey: "8f2d4a5f-8cf9-4be9-95dd-d4d490090077",
+  pixKey: "bruno.diego.yoshikawa@gmail.com",
+  // Chave do Web3Forms (https://web3forms.com) para receber e-mails de RSVP e mensagens dos presentes.
+  // É pública por natureza (fica no navegador); só permite enviar e-mail para o dono da chave.
+  web3formsKey: "00f66dc8-f6f3-4bfd-aa57-e68d49f28a4c",
   pixReceiverName: "Bruno Diego Yoshikawa",
   pixReceiverCity: "SAO PAULO",
 };
@@ -51,6 +54,30 @@ const I18N = {
     "presentes.intro": "Se desejar nos presentear, você pode escolher uma das opções abaixo. Obrigado pelo carinho!",
     "presentes.voltar": "Voltar para a página inicial",
     "gifts.present": "Presentear",
+    "gifts.kind": "Contribuição em dinheiro",
+    "gifts.btn.pix": "Pix",
+    "gifts.btn.card": "Cartão",
+    "gifts.card.title": "Presente via cartão",
+    "gifts.card.continue": "Continuar para o pagamento →",
+    "gifts.msg.title": "💌 Deixe seu nome e uma mensagem",
+    "gifts.msg.name": "Seu nome",
+    "gifts.msg.text": "Uma mensagem para os noivos (opcional)",
+    "gifts.msg.send": "Enviar mensagem",
+    "gifts.msg.sending": "Enviando...",
+    "gifts.msg.sent": "Mensagem enviada! Obrigado 💛",
+    "gifts.msg.empty": "Escreva seu nome ou uma mensagem.",
+    "gifts.msg.error": "Não foi possível enviar agora. Tente novamente.",
+    "gifts.pix.title": "Presente via Pix",
+    "gifts.pix.copy": "Copiar código Pix",
+    "gifts.pix.copied": "Código copiado!",
+    "gifts.pix.step1": "Abra o app do seu banco e escolha pagar com Pix.",
+    "gifts.pix.step2": "Escaneie o QR Code ou cole o código copiado (Pix copia e cola).",
+    "gifts.pix.step3": "Confira o valor e o favorecido antes de confirmar.",
+    "gifts.pix.receiver": "Favorecido",
+    "gifts.pix.key": "Chave Pix (e-mail)",
+    "gifts.pix.showCode": "Ver código e baixar QR Code",
+    "gifts.pix.download": "Baixar QR Code",
+    "gifts.pix.thanks": "Obrigado pelo carinho! 💛",
     "gifts.panela.title": "Jogo de panela Le Creuset",
     "gifts.panela.desc": "Aumentar o nível da cozinha em casa.",
     "gifts.cachorro.title": "Cachorrinho",
@@ -59,7 +86,7 @@ const I18N = {
     "gifts.lego.desc": "Adicionar à coleção da Elizabete na sala de estar",
     "gifts.oculos.title": "Óculos de corrida",
     "gifts.oculos.desc": "Importante para baixar o pace",
-    "gifts.viagem.title": "Viagem NY — SP",
+    "gifts.viagem.title": "Viagem US — BR",
     "gifts.viagem.desc": "Frequente nesses últimos tempos",
     "gifts.faca.title": "Faca de chef",
     "gifts.faca.desc": "Necessidades básicas da cozinha",
@@ -126,6 +153,30 @@ const I18N = {
     "presentes.intro": "If you would like to give us a gift, you can choose one of the options below. Thank you for your love!",
     "presentes.voltar": "Back to home page",
     "gifts.present": "Gift this",
+    "gifts.kind": "Monetary contribution",
+    "gifts.btn.pix": "Pix",
+    "gifts.btn.card": "Card",
+    "gifts.card.title": "Gift via card",
+    "gifts.card.continue": "Continue to payment →",
+    "gifts.msg.title": "💌 Leave your name and a message",
+    "gifts.msg.name": "Your name",
+    "gifts.msg.text": "A message for the couple (optional)",
+    "gifts.msg.send": "Send message",
+    "gifts.msg.sending": "Sending...",
+    "gifts.msg.sent": "Message sent! Thank you 💛",
+    "gifts.msg.empty": "Please write your name or a message.",
+    "gifts.msg.error": "We couldn't send it now. Please try again.",
+    "gifts.pix.title": "Gift via Pix",
+    "gifts.pix.copy": "Copy Pix code",
+    "gifts.pix.copied": "Code copied!",
+    "gifts.pix.step1": "Open your Brazilian bank app and choose to pay with Pix.",
+    "gifts.pix.step2": "Scan the QR Code or paste the copied code (Pix copy and paste).",
+    "gifts.pix.step3": "Check the amount and recipient before confirming.",
+    "gifts.pix.receiver": "Recipient",
+    "gifts.pix.key": "Pix key (e-mail)",
+    "gifts.pix.showCode": "Show code and download QR Code",
+    "gifts.pix.download": "Download QR Code",
+    "gifts.pix.thanks": "Thank you for your love! 💛",
     "gifts.panela.title": "Le Creuset cookware set",
     "gifts.panela.desc": "Level up our kitchen at home.",
     "gifts.cachorro.title": "Puppy",
@@ -134,7 +185,7 @@ const I18N = {
     "gifts.lego.desc": "Add to Elizabete's living room collection",
     "gifts.oculos.title": "Running sunglasses",
     "gifts.oculos.desc": "Important to improve pace",
-    "gifts.viagem.title": "Trip NY — SP",
+    "gifts.viagem.title": "Trip US — BR",
     "gifts.viagem.desc": "Frequent in recent times",
     "gifts.faca.title": "Chef's knife",
     "gifts.faca.desc": "Basic kitchen needs",
@@ -405,6 +456,7 @@ function setupRSVPForm() {
     import("./server/firebase-db.js")
       .then(({ dbService }) => dbService.submitRSVP(payload))
       .then(() => {
+        notifyByEmail({ tipo: "rsvp", ...payload }).catch((err) => console.error("RSVP e-mail error:", err));
         if (feedback) feedback.textContent = dict["form.feedback.success"];
         form.reset();
       })
@@ -484,168 +536,176 @@ function setupLanguageSwitcherUI() {
   render();
 }
 
-// ====== Presentes: Pix QR ======
+// ====== Notificação por e-mail (Web3Forms) ======
+function notifyByEmail(data) {
+  const key = (WEDDING_CONFIG.web3formsKey || "").trim();
+  if (!key) return Promise.reject(new Error("web3formsKey não configurada"));
+
+  const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  let fields;
+  if (data.tipo === "rsvp") {
+    const acomp = parseInt(data.acompanhantes, 10) || 0;
+    fields = {
+      subject: `✅ RSVP: ${data.nome} (+${acomp})`,
+      replyto: data.email,
+      Nome: data.nome,
+      "E-mail": data.email,
+      Telefone: data.telefone || "-",
+      Acompanhantes: acomp,
+      "Total de pessoas": 1 + acomp,
+      Mensagem: data.mensagem || "(sem mensagem)",
+      Idioma: currentLang,
+    };
+  } else {
+    fields = {
+      subject: `🎁 Presente: ${data.presente} (${data.forma}) — ${data.nome || "Anônimo"}`,
+      Nome: data.nome || "Anônimo",
+      Presente: data.presente,
+      Valor: brl(data.valor),
+      "Forma de pagamento": data.forma,
+      Mensagem: data.mensagem || "(sem mensagem)",
+      Aviso: "O site não confirma o pagamento. Confira no app do banco (Pix) ou no Stripe (cartão).",
+    };
+  }
+
+  return fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ access_key: key, from_name: "Site do Casamento", ...fields }),
+  })
+    .then((res) => res.json())
+    .then((json) => {
+      if (!json.success) throw new Error(json.message || "Falha no envio");
+      return json;
+    });
+}
+
+// ====== Presentes: Pix (QR Code + copia e cola) ou cartão, com mensagem ======
 function setupGiftsPix() {
-  const modal = document.querySelector("#pix-modal");
-  const closeBtn = document.querySelector("#pix-close");
-  const qrcodeDiv = document.querySelector("#qrcode");
-  const pixText = document.querySelector("#pixText");
-  const qrImg = document.querySelector("#qrcodeImg");
-  const qrDownload = document.querySelector("#qrcodeDownload");
-  const copyBtn = document.querySelector("#pix-copy");
-  if (!modal || !qrcodeDiv) return; // só na página de presentes
+  const modal = select("#gift-modal");
+  if (!modal) return; // só na página de presentes
 
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest(".gift-pix");
-    if (!btn) return;
-    // Se o botão tiver um link específico, usa-o; caso contrário, usa o link padrão
-    const specificLink = btn.getAttribute("data-link");
-    if (specificLink) {
-      window.location.href = specificLink;
-      return;
-    }
-    window.location.href = "https://donate.stripe.com/aFa8wPc7U22z13B7J69AA02";
-    return;
-    const title = btn.getAttribute("data-title") || "Presente";
-    const amountStr = btn.getAttribute("data-amount") || "0";
-    const amount = Number(amountStr);
-
-    const key = WEDDING_CONFIG.pixKey || "";
-    const name = WEDDING_CONFIG.pixReceiverName || "";
-    const city = WEDDING_CONFIG.pixReceiverCity || "";
-    if (!key || !name || !city) {
-      alert("Configuração do Pix ausente. Verifique pixKey, pixReceiverName e pixReceiverCity.");
-      return;
-    }
-    const txid = "CASAMENTO" + Math.floor(Math.random() * 100000);
-    const payload = generatePixPayload(key, name, city, amount, title, txid);
-
-    // Limpa/oculta anteriores
-    qrcodeDiv.innerHTML = "";
-    qrcodeDiv.style.display = "none";
-    if (qrImg) {
-      qrImg.removeAttribute("src");
-      qrImg.style.display = "none";
-    }
-    if (window.QRCode) {
-      const applyImage = (url, filenameExt = "png") => {
-        if (!url) return false;
-        if (qrcodeDiv) {
-          qrcodeDiv.innerHTML = "";
-          qrcodeDiv.style.display = "none";
-        }
-        if (qrImg) {
-          qrImg.src = url;
-          qrImg.style.display = "block";
-        }
-        if (qrDownload) {
-          qrDownload.href = url;
-          qrDownload.download = `pix-${txid}.${filenameExt}`;
-        }
-        return true;
-      };
-      const applySvg = (svg) => {
-        if (!svg) return false;
-        if (qrImg) {
-          qrImg.removeAttribute("src");
-          qrImg.style.display = "none";
-        }
-        if (qrcodeDiv) {
-          qrcodeDiv.innerHTML = svg;
-          qrcodeDiv.style.display = "block";
-        }
-        try {
-          const blob = new Blob([svg], { type: "image/svg+xml" });
-          const url = URL.createObjectURL(blob);
-          if (qrDownload) {
-            qrDownload.href = url;
-            qrDownload.download = `pix-${txid}.svg`;
-          }
-        } catch (_e) {}
-        return true;
-      };
-      const tryDataURL = () => new Promise((resolve) => {
-        if (typeof QRCode.toDataURL !== "function") return resolve(false);
-        try {
-          const res = QRCode.toDataURL(payload, { width: 256 });
-          const done = (url) => resolve(applyImage(url, "png"));
-          if (res && typeof res.then === "function") {
-            res.then(done).catch(() => resolve(false));
-          } else if (typeof res === "string") {
-            done(res);
-          } else {
-            QRCode.toDataURL(payload, { width: 256 }, (err, url) => {
-              resolve(!err && applyImage(url, "png"));
-            });
-          }
-        } catch (_e) { resolve(false); }
-      });
-      const tryCanvas = () => new Promise((resolve) => {
-        if (typeof QRCode.toCanvas !== "function") return resolve(false);
-        try {
-          const off = document.createElement("canvas");
-          const maybe = QRCode.toCanvas(off, payload, { width: 256 });
-          const after = () => {
-            try {
-              const url = off.toDataURL("image/png");
-              resolve(applyImage(url, "png"));
-            } catch (_e) { resolve(false); }
-          };
-          if (maybe && typeof maybe.then === "function") {
-            maybe.then(after).catch(() => resolve(false));
-          } else {
-            after();
-          }
-        } catch (_e) { resolve(false); }
-      });
-      const trySvg = () => new Promise((resolve) => {
-        if (typeof QRCode.toString !== "function") return resolve(false);
-        try {
-          const resStr = QRCode.toString(payload, { type: "svg", width: 256 });
-          const done = (svg) => resolve(applySvg(svg));
-          if (resStr && typeof resStr.then === "function") {
-            resStr.then(done).catch(() => resolve(false));
-          } else if (typeof resStr === "string") {
-            done(resStr);
-          } else {
-            QRCode.toString(payload, { type: "svg", width: 256 }, (err, svg) => {
-              resolve(!err && applySvg(svg));
-            });
-          }
-        } catch (_e) { resolve(false); }
-      });
-      // Tenta em sequência para garantir apenas UMA saída
-      tryDataURL()
-        .then((ok) => ok ? true : tryCanvas())
-        .then((ok) => ok ? true : trySvg())
-        .catch(() => {});
-    }
-    if (pixText) pixText.textContent = payload;
-    modal.classList.add("is-open");
-    modal.setAttribute("aria-hidden", "false");
-  });
+  const content = modal.querySelector(".pix-modal");
+  const qrImg = select("#pix-qr");
+  const codeBox = select("#pix-code");
+  const copyBtn = select("#pix-copy");
+  const copyLabel = select("#pix-copy-label");
+  const downloadLink = select("#pix-download");
+  const form = select("#gift-message");
+  const feedback = form.querySelector(".gift-message-feedback");
+  const t = (key) => (I18N[currentLang] || I18N.pt)[key] || I18N.pt[key];
+  let gift = null;
 
   const close = () => {
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
   };
-  if (closeBtn) closeBtn.addEventListener("click", close);
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) close();
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".gift-pix, .gift-card-pay");
+    if (!btn) return;
+    const card = btn.closest(".gift-card");
+    const pixBtn = card?.querySelector(".gift-pix");
+    const mode = btn.classList.contains("gift-pix") ? "pix" : "card";
+    gift = {
+      mode,
+      name: card?.querySelector(".gift-title")?.textContent.trim() || "Presente",
+      title: pixBtn?.dataset.title || "Presente", // sem acentos, para o Pix
+      amount: Number(pixBtn?.dataset.amount || 0),
+      cardUrl: card?.querySelector(".gift-card-pay")?.dataset.link,
+    };
+
+    content.dataset.mode = mode;
+    // Mostra só os elementos do modo atual (Pix ou cartão)
+    modal.querySelectorAll(".pix-only").forEach((el) => (el.hidden = mode !== "pix"));
+    modal.querySelectorAll(".card-only").forEach((el) => (el.hidden = mode !== "card"));
+    modal.querySelector(".pix-gift-name").textContent = gift.name;
+    modal.querySelector(".pix-amount").textContent = gift.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    form.reset();
+    form.querySelectorAll("input, textarea, button").forEach((el) => (el.disabled = false));
+    feedback.textContent = "";
+
+    if (mode === "pix") {
+      const { pixKey, pixReceiverName, pixReceiverCity } = WEDDING_CONFIG;
+      const txid = "CASAMENTO" + Date.now().toString().slice(-8);
+      const payload = generatePixPayload(pixKey, pixReceiverName, pixReceiverCity, gift.amount, gift.title, txid);
+      select("#pix-key").textContent = pixKey;
+      select("#pix-receiver").textContent = pixReceiverName;
+      codeBox.value = payload;
+      copyBtn.classList.remove("is-copied");
+      copyLabel.textContent = t("gifts.pix.copy");
+      modal.querySelector(".pix-more").open = false;
+      qrImg.removeAttribute("src");
+      if (window.QRCode && typeof QRCode.toDataURL === "function") {
+        QRCode.toDataURL(payload, { width: 340, margin: 1 }).then((url) => {
+          qrImg.src = url;
+          downloadLink.href = url;
+          downloadLink.download = `pix-${txid}.png`;
+        }).catch(() => {});
+      }
+    }
+
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
   });
 
-  if (copyBtn) {
-    copyBtn.addEventListener("click", async () => {
-      const text = (pixText && pixText.textContent) || "";
-      try {
-        await navigator.clipboard.writeText(text);
-        copyBtn.textContent = "Copiado!";
-        setTimeout(() => (copyBtn.textContent = "Copiar código"), 1500);
-      } catch {
-        // fallback silencioso
-      }
-    });
-  }
+  // Envia nome + mensagem por e-mail. No cartão, segue para o Stripe em seguida.
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!gift) return;
+    const data = new FormData(form);
+    const nome = String(data.get("nome") || "").trim();
+    const mensagem = String(data.get("mensagem") || "").trim();
+    const isCard = gift.mode === "card";
+
+    if (data.get("website")) return; // robô
+    if (!nome && !mensagem) {
+      if (isCard) { window.location.href = gift.cardUrl; return; } // mensagem é opcional
+      feedback.textContent = t("gifts.msg.empty");
+      return;
+    }
+
+    const payload = {
+      tipo: "presente",
+      forma: isCard ? "Cartão" : "Pix",
+      presente: gift.name,
+      valor: gift.amount,
+      nome,
+      mensagem,
+    };
+    feedback.textContent = t("gifts.msg.sending");
+    form.querySelectorAll("button").forEach((b) => (b.disabled = true));
+    try {
+      await notifyByEmail(payload);
+      if (isCard) { window.location.href = gift.cardUrl; return; }
+      feedback.textContent = t("gifts.msg.sent");
+      form.querySelectorAll("input, textarea").forEach((el) => (el.disabled = true));
+    } catch (err) {
+      console.error("Gift message error:", err);
+      if (isCard) { window.location.href = gift.cardUrl; return; } // não trava o pagamento
+      feedback.textContent = t("gifts.msg.error");
+      form.querySelectorAll("button").forEach((b) => (b.disabled = false));
+    }
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(codeBox.value);
+    } catch {
+      codeBox.select();
+      document.execCommand("copy");
+    }
+    copyBtn.classList.add("is-copied");
+    copyLabel.textContent = t("gifts.pix.copied");
+    setTimeout(() => {
+      copyBtn.classList.remove("is-copied");
+      copyLabel.textContent = t("gifts.pix.copy");
+    }, 2500);
+  });
+
+  select("#gift-close").addEventListener("click", close);
+  modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
 }
 
 function generatePixPayload(key, name, city, amount, description, txid) {
@@ -655,7 +715,9 @@ function generatePixPayload(key, name, city, amount, description, txid) {
 
   const gui = tlv("00", "BR.GOV.BCB.PIX");
   const k = tlv("01", String(key));
-  const desc = description ? tlv("02", String(description).slice(0, 99)) : "";
+  const maxDesc = 99 - gui.length - k.length - 4;
+  const descText = sanitize(description).replace(/[^\w .-]/g, "").slice(0, Math.max(0, maxDesc));
+  const desc = descText ? tlv("02", descText) : "";
   const mai = tlv("26", gui + k + desc);
 
   const pfi = tlv("00", "01");              // Payload Format Indicator

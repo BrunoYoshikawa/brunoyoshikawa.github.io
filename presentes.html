@@ -8,15 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script>
-      if (!window.QRCode) {
-        var s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.0/qrcode.min.js';
-        document.head.appendChild(s);
-      }
-    </script>
+    <link rel="stylesheet" href="./styles.css?v=20261004d" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.0/qrcode.min.js"></script>
   </head>
   <body>
     <header class="site-header" id="topo">
@@ -66,55 +59,67 @@
             <article class="gift-card">
               <img class="gift-image" src="./assets/panela.jpeg" alt="Jogo de panela Le Creuset" loading="lazy" />
               <h3 class="gift-title" data-i18n="gifts.panela.title">Jogo de panela Le Creuset</h3>
+              <p class="gift-kind" data-i18n="gifts.kind">Contribuição em dinheiro</p>
               <p class="gift-price">R$ 6.000</p>
               <p class="gift-desc" data-i18n="gifts.panela.desc">Aumentar o nível da cozinha em casa.</p>
               <div class="gift-actions">
-                <button type="button" class="btn btn-primary gift-pix" data-title="Jogo de panela Le Creuset" data-amount="6000" data-link="https://buy.stripe.com/9B600jb3Q6iPdQn1kI9AA01" data-i18n="gifts.present">Presentear</button>
+                <button type="button" class="btn btn-primary gift-btn gift-pix" data-title="Jogo de panela Le Creuset" data-amount="6000"><span aria-hidden="true">⚡</span> <span data-i18n="gifts.btn.pix">Pix</span></button>
+                <button type="button" class="btn btn-ghost gift-btn gift-card-pay" data-link="https://buy.stripe.com/9B600jb3Q6iPdQn1kI9AA01"><span aria-hidden="true">💳</span> <span data-i18n="gifts.btn.card">Cartão</span></button>
               </div>
             </article>
             <article class="gift-card">
               <img class="gift-image" src="./assets/labrador.jpeg" alt="Cachorrinho" loading="lazy" />
               <h3 class="gift-title" data-i18n="gifts.cachorro.title">Cachorrinho</h3>
+              <p class="gift-kind" data-i18n="gifts.kind">Contribuição em dinheiro</p>
               <p class="gift-price">R$ 4.000</p>
               <p class="gift-desc" data-i18n="gifts.cachorro.desc">Elizabete sempre falou que gostaria de um doguinho</p>
               <div class="gift-actions">
-                <button type="button" class="btn btn-primary gift-pix" data-title="Cachorrinho" data-amount="4000" data-link="https://donate.stripe.com/3cIdR94Fsaz5fYvfby9AA03" data-i18n="gifts.present">Presentear</button>
+                <button type="button" class="btn btn-primary gift-btn gift-pix" data-title="Cachorrinho" data-amount="4000"><span aria-hidden="true">⚡</span> <span data-i18n="gifts.btn.pix">Pix</span></button>
+                <button type="button" class="btn btn-ghost gift-btn gift-card-pay" data-link="https://donate.stripe.com/3cIdR94Fsaz5fYvfby9AA03"><span aria-hidden="true">💳</span> <span data-i18n="gifts.btn.card">Cartão</span></button>
               </div>
             </article>
             <article class="gift-card">
               <img class="gift-image" src="./assets/lego.jpeg" alt="Kit LEGO para decoração" loading="lazy" />
               <h3 class="gift-title" data-i18n="gifts.lego.title">Kit LEGO para decoração</h3>
+              <p class="gift-kind" data-i18n="gifts.kind">Contribuição em dinheiro</p>
               <p class="gift-price">R$ 2.000</p>
               <p class="gift-desc" data-i18n="gifts.lego.desc">Adicionar à coleção da Elizabete na sala de estar</p>
               <div class="gift-actions">
-                <button type="button" class="btn btn-primary gift-pix" data-title="Kit LEGO para decoracao" data-amount="2000" data-link="https://donate.stripe.com/cNibJ13BofTp5jR3sQ9AA04" data-i18n="gifts.present">Presentear</button>
+                <button type="button" class="btn btn-primary gift-btn gift-pix" data-title="Kit LEGO para decoracao" data-amount="2000"><span aria-hidden="true">⚡</span> <span data-i18n="gifts.btn.pix">Pix</span></button>
+                <button type="button" class="btn btn-ghost gift-btn gift-card-pay" data-link="https://donate.stripe.com/cNibJ13BofTp5jR3sQ9AA04"><span aria-hidden="true">💳</span> <span data-i18n="gifts.btn.card">Cartão</span></button>
               </div>
             </article>
             <article class="gift-card">
               <img class="gift-image" src="./assets/oculos_corrida.jpeg" alt="Óculos de corrida" loading="lazy" />
               <h3 class="gift-title" data-i18n="gifts.oculos.title">Óculos de corrida</h3>
+              <p class="gift-kind" data-i18n="gifts.kind">Contribuição em dinheiro</p>
               <p class="gift-price">R$ 300</p>
               <p class="gift-desc" data-i18n="gifts.oculos.desc">Importante para baixar o pace</p>
               <div class="gift-actions">
-                <button type="button" class="btn btn-primary gift-pix" data-title="Oculos de corrida" data-amount="300" data-link="https://donate.stripe.com/fZu14n5Jw36D27FgfC9AA07" data-i18n="gifts.present">Presentear</button>
+                <button type="button" class="btn btn-primary gift-btn gift-pix" data-title="Oculos de corrida" data-amount="300"><span aria-hidden="true">⚡</span> <span data-i18n="gifts.btn.pix">Pix</span></button>
+                <button type="button" class="btn btn-ghost gift-btn gift-card-pay" data-link="https://donate.stripe.com/fZu14n5Jw36D27FgfC9AA07"><span aria-hidden="true">💳</span> <span data-i18n="gifts.btn.card">Cartão</span></button>
               </div>
             </article>
             <article class="gift-card">
-              <img class="gift-image" src="./assets/aviao.jpeg" alt="Viagem NY — SP" loading="lazy" />
-              <h3 class="gift-title" data-i18n="gifts.viagem.title">Viagem NY — SP</h3>
+              <img class="gift-image" src="./assets/aviao.jpeg" alt="Viagem US — BR" loading="lazy" />
+              <h3 class="gift-title" data-i18n="gifts.viagem.title">Viagem US — BR</h3>
+              <p class="gift-kind" data-i18n="gifts.kind">Contribuição em dinheiro</p>
               <p class="gift-price">R$ 3.000</p>
               <p class="gift-desc" data-i18n="gifts.viagem.desc">Frequente nesses últimos tempos</p>
               <div class="gift-actions">
-                <button type="button" class="btn btn-primary gift-pix" data-title="Viagem NY - SP" data-amount="3000" data-link="https://donate.stripe.com/5kQ9AT0pc36D27F2oM9AA05" data-i18n="gifts.present">Presentear</button>
+                <button type="button" class="btn btn-primary gift-btn gift-pix" data-title="Viagem US - BR" data-amount="3000"><span aria-hidden="true">⚡</span> <span data-i18n="gifts.btn.pix">Pix</span></button>
+                <button type="button" class="btn btn-ghost gift-btn gift-card-pay" data-link="https://donate.stripe.com/5kQ9AT0pc36D27F2oM9AA05"><span aria-hidden="true">💳</span> <span data-i18n="gifts.btn.card">Cartão</span></button>
               </div>
             </article>
             <article class="gift-card">
               <img class="gift-image" src="./assets/faca.png" alt="Faca de chef" loading="lazy" />
               <h3 class="gift-title" data-i18n="gifts.faca.title">Faca de chef</h3>
+              <p class="gift-kind" data-i18n="gifts.kind">Contribuição em dinheiro</p>
               <p class="gift-price">R$ 200</p>
               <p class="gift-desc" data-i18n="gifts.faca.desc">Necessidades básicas da cozinha</p>
               <div class="gift-actions">
-                <button type="button" class="btn btn-primary gift-pix" data-title="Faca de chef" data-amount="200" data-link="https://donate.stripe.com/5kQ28rgoa4aH5jR4wU9AA06" data-i18n="gifts.present">Presentear</button>
+                <button type="button" class="btn btn-primary gift-btn gift-pix" data-title="Faca de chef" data-amount="200"><span aria-hidden="true">⚡</span> <span data-i18n="gifts.btn.pix">Pix</span></button>
+                <button type="button" class="btn btn-ghost gift-btn gift-card-pay" data-link="https://donate.stripe.com/5kQ28rgoa4aH5jR4wU9AA06"><span aria-hidden="true">💳</span> <span data-i18n="gifts.btn.card">Cartão</span></button>
               </div>
             </article>
           </div>
@@ -124,19 +129,57 @@
       </section>
     </main>
 
-    <!-- Modal Pix -->
-    <div id="pix-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
-      <div class="modal-content">
-        <h2>Obrigado pelo presente!</h2>
-        <p>Escaneie o QR Code abaixo para concluir o Pix:</p>
-        <div id="qrcode"></div>
-        <img id="qrcodeImg" alt="QR Code Pix" style="display:none; margin-top:8px;" />
-        <div class="gift-actions" style="justify-content:center; margin-top:8px;">
-          <a id="qrcodeDownload" class="btn btn-primary" href="#" download="pix.png">Baixar QR</a>
-          <button type="button" class="btn btn-ghost" id="pix-copy">Copiar código</button>
+    <!-- Modal: presente (Pix ou cartão) + mensagem para os noivos -->
+    <div id="gift-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="gift-title">
+      <div class="modal-content pix-modal" data-mode="pix">
+        <button type="button" class="modal-x" id="gift-close" aria-label="Fechar">✕</button>
+
+        <div class="pix-header">
+          <span class="pix-badge" aria-hidden="true"><span class="pix-only">⚡</span><span class="card-only">💳</span></span>
+          <h2 id="gift-title">
+            <span class="pix-only" data-i18n="gifts.pix.title">Presente via Pix</span>
+            <span class="card-only" data-i18n="gifts.card.title">Presente via cartão</span>
+          </h2>
+          <p class="pix-gift-name"></p>
+          <p class="pix-amount"></p>
         </div>
-        <p id="pixText" class="fine-print" style="word-break: break-all;"></p>
-        <button type="button" class="btn btn-ghost" id="pix-close">Fechar</button>
+
+        <!-- Pix -->
+        <div class="pix-qr-box pix-only">
+          <img id="pix-qr" class="pix-qr" alt="QR Code Pix" width="170" height="170" />
+        </div>
+        <button type="button" class="btn btn-primary pix-copy pix-only" id="pix-copy">
+          <span aria-hidden="true">📋</span> <span id="pix-copy-label" data-i18n="gifts.pix.copy">Copiar código Pix</span>
+        </button>
+        <ol class="pix-steps pix-only">
+          <li data-i18n="gifts.pix.step1">Abra o app do seu banco e escolha pagar com Pix.</li>
+          <li data-i18n="gifts.pix.step2">Escaneie o QR Code ou cole o código copiado (Pix copia e cola).</li>
+          <li data-i18n="gifts.pix.step3">Confira o valor e o favorecido antes de confirmar.</li>
+        </ol>
+        <div class="pix-receiver pix-only">
+          <div><span data-i18n="gifts.pix.receiver">Favorecido</span><strong id="pix-receiver"></strong></div>
+          <div><span data-i18n="gifts.pix.key">Chave Pix (e-mail)</span><strong id="pix-key"></strong></div>
+        </div>
+
+        <!-- Mensagem para os noivos (Pix e cartão) -->
+        <form id="gift-message" class="gift-message" novalidate>
+          <p class="gift-message-title" data-i18n="gifts.msg.title">💌 Deixe seu nome e uma mensagem</p>
+          <input type="text" name="nome" maxlength="120" autocomplete="name" placeholder="Seu nome" data-i18n-placeholder="gifts.msg.name" />
+          <textarea name="mensagem" rows="3" maxlength="1000" placeholder="Uma mensagem para os noivos (opcional)" data-i18n-placeholder="gifts.msg.text"></textarea>
+          <!-- Campo invisível contra robôs -->
+          <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true" hidden style="display:none" />
+          <button type="submit" class="btn btn-ghost gift-message-send pix-only" data-i18n="gifts.msg.send">Enviar mensagem</button>
+          <button type="submit" class="btn btn-primary gift-message-send card-only" data-i18n="gifts.card.continue">Continuar para o pagamento →</button>
+          <p class="gift-message-feedback" role="status" aria-live="polite"></p>
+        </form>
+
+        <details class="pix-more pix-only">
+          <summary data-i18n="gifts.pix.showCode">Ver código e baixar QR Code</summary>
+          <textarea id="pix-code" class="pix-code" readonly rows="3" aria-label="Código Pix copia e cola"></textarea>
+          <a class="pix-download" id="pix-download" href="#" download="pix.png" data-i18n="gifts.pix.download">Baixar QR Code</a>
+        </details>
+
+        <p class="pix-thanks" data-i18n="gifts.pix.thanks">Obrigado pelo carinho! 💛</p>
       </div>
     </div>
 
@@ -146,7 +189,7 @@
       </div>
     </footer>
 
-    <script src="./script.js"></script>
+    <script src="./script.js?v=20261004d"></script>
   </body>
   </html>
 

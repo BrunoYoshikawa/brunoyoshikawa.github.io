@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20261004d" />
   </head>
   <body>
     <header class="site-header" id="topo">
@@ -198,7 +198,7 @@
             <div class="form-row">
               <div class="form-field">
                 <label for="nome" data-i18n="form.nome.label">Nome completo</label>
-                <input type="text" id="nome" name="nome" autocomplete="name" required placeholder="Seu nome" data-i18n-placeholder="form.nome.placeholder" />
+                <input type="text" id="nome" name="nome" maxlength="200" autocomplete="name" required placeholder="Seu nome" data-i18n-placeholder="form.nome.placeholder" />
               </div>
               <div class="form-field">
                 <label for="acompanhantes" data-i18n="form.acompanhantes.label">Número de acompanhantes</label>
@@ -208,18 +208,18 @@
             <div class="form-row">
               <div class="form-field">
                 <label for="email" data-i18n="form.email.label">E-mail</label>
-                <input type="email" id="email" name="email" autocomplete="email" required placeholder="voce@email.com"
+                <input type="email" id="email" name="email" maxlength="200" autocomplete="email" required placeholder="voce@email.com"
                   data-i18n-placeholder="form.email.placeholder" />
               </div>
               <div class="form-field">
                 <label for="telefone" data-i18n="form.telefone.label">Telefone</label>
-                <input type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(11) 99999-9999" data-i18n-placeholder="form.telefone.placeholder" />
+                <input type="tel" id="telefone" name="telefone" maxlength="30" autocomplete="tel" placeholder="(11) 99999-9999" data-i18n-placeholder="form.telefone.placeholder" />
               </div>
               
             </div>
             <div class="form-field">
               <label for="mensagem" data-i18n="form.mensagem.label">Mensagem (opcional)</label>
-              <textarea id="mensagem" name="mensagem" rows="4" placeholder="Escreva uma mensagem para os noivos" data-i18n-placeholder="form.mensagem.placeholder"></textarea>
+              <textarea id="mensagem" name="mensagem" maxlength="2000" rows="4" placeholder="Escreva uma mensagem para os noivos" data-i18n-placeholder="form.mensagem.placeholder"></textarea>
             </div>
             <div class="form-actions">
               <button type="submit" class="btn btn-primary" data-i18n="form.enviar">Enviar confirmação</button>
@@ -237,7 +237,7 @@
       </div>
     </footer>
 
-    <script src="./script.js"></script>
+    <script src="./script.js?v=20261004d"></script>
   </body>
   </html>
 
