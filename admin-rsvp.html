@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Gestão de RSVP</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --ok: #2e7d32;    --ok-bg: #e7f4e8;
+      --wait: #a86b00;  --wait-bg: #fff4d6;
+      --no: #c62828;    --no-bg: #fdeaea;
+      --stale: #b45309; --stale-bg: #ffedd5;
+    }
+    .admin-container { padding: 32px 20px 60px; max-width: 1280px; margin: 0 auto; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    .topbar h1 { margin: 0; }
+    .topbar-right { display: flex; gap: 10px; align-items: center; }
+    #saveStatus { font-size: 14px; color: var(--text-muted); }
+
+    /* Cards de resumo */
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 14px; }
+    .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); border-left-width: 5px; }
+    .kpi-label { font-size: 13px; color: var(--text-muted); }
+    .kpi-value { font-size: 30px; font-weight: 700; line-height: 1.2; margin-top: 4px; }
+    .kpi-sub { font-size: 12px; color: var(--text-muted); }
+    .kpi-ok { border-left-color: var(--ok); }     .kpi-ok .kpi-value { color: var(--ok); }
+    .kpi-wait { border-left-color: var(--wait); } .kpi-wait .kpi-value { color: var(--wait); }
+    .kpi-no { border-left-color: var(--no); }     .kpi-no .kpi-value { color: var(--no); }
+    .kpi-stale { border-left-color: var(--stale); } .kpi-stale .kpi-value { color: var(--stale); }
+    .progress { display: flex; height: 10px; border-radius: 99px; overflow: hidden; background: var(--border); margin: 0 0 24px; }
+    .progress > div { transition: width .3s; }
+
+    /* Abas */
+    .tabs { display: flex; gap: 6px; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+    .tab { background: none; border: none; padding: 10px 16px; font: inherit; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab .count { background: var(--border); border-radius: 99px; padding: 1px 8px; font-size: 12px; margin-left: 4px; }
+
+    /* Filtros */
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .filters input, .filters select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: white; font: inherit; font-size: 14px; }
+    .filters input[type=search] { min-width: 220px; }
+    .filters .spacer { flex: 1; }
+    .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--border); background: white; border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+    .chip.active { border-color: currentColor; font-weight: 600; }
+    .chip[data-status=confirmado].active { color: var(--ok); background: var(--ok-bg); }
+    .chip[data-status=aguardando].active { color: var(--wait); background: var(--wait-bg); }
+    .chip[data-status=nao_vai].active { color: var(--no); background: var(--no-bg); }
+    .chip[data-status=""].active { color: var(--primary); }
+    .chip[data-status=antigo].active { color: var(--stale); background: var(--stale-bg); }
+
+    /* Seletor de evento */
+    .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 14px; background: white; }
+    .seg button { border: none; background: none; padding: 8px 18px; font: inherit; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+    .seg button.active { background: var(--primary); color: white; }
+    .stale-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; color: var(--stale); background: var(--stale-bg); border: 1px solid var(--stale); white-space: nowrap; }
+    .muted { color: var(--text-muted); }
+    .date-cell { white-space: nowrap; }
+
+    /* Tabela */
+    .table-wrapper { overflow: auto; max-height: 70vh; background: var(--card); border-radius: 14px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { background: #f6f0df; padding: 10px 12px; font-weight: 600; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: var(--primary); }
+    th .arrow { opacity: .35; margin-left: 4px; }
+    th.sorted .arrow { opacity: 1; color: var(--primary); }
+    td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:hover td { background: rgba(47, 111, 161, 0.04); }
+    tr.row-confirmado td:first-child { box-shadow: inset 4px 0 var(--ok); }
+    tr.row-aguardando td:first-child { box-shadow: inset 4px 0 var(--wait); }
+    tr.row-nao_vai td:first-child { box-shadow: inset 4px 0 var(--no); }
+    .editable-field { width: 100%; min-width: 90px; padding: 6px; border: 1px solid transparent; background: transparent; border-radius: 6px; font: inherit; }
+    .editable-field[data-key=nome] { min-width: 180px; font-weight: 600; }
+    .editable-field[data-key=email], .editable-field[data-key=mensagem], .editable-field[data-key=observacao] { min-width: 180px; }
+    .editable-field[data-key=confirmacao] { min-width: 110px; }
+    .editable-field[data-key=tipoConvidado], .editable-field[data-key=noivoResponsavel] { min-width: 100px; }
+    .editable-field:hover { border-color: var(--border); }
+    .editable-field:focus { background: white; border-color: var(--primary); outline: none; }
+    .editable-field.saved { background: var(--ok-bg); transition: background .2s; }
+    .status-select { appearance: none; -webkit-appearance: none; border: 1px solid; border-radius: 99px; padding: 5px 12px; font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; min-width: 135px; }
+    .status-confirmado { color: var(--ok); background: var(--ok-bg); border-color: var(--ok); }
+    .status-aguardando { color: var(--wait); background: var(--wait-bg); border-color: var(--wait); }
+    .status-nao_vai { color: var(--no); background: var(--no-bg); border-color: var(--no); }
+    .status-na { color: #8a8f91; background: #f1f1ef; border: 1px dashed #c9cccd; }
+    /* Cards clicáveis */
+    .kpi { cursor: pointer; transition: transform .1s, box-shadow .1s; }
+    .kpi:hover { transform: translateY(-2px); }
+    .kpi.active { outline: 2px solid currentColor; outline-offset: -2px; }
+    .kpi-ok.active { color: var(--ok); }
+    .kpi-wait.active { color: var(--wait); } .kpi-no.active { color: var(--no); } .kpi-stale.active { color: var(--stale); }
+    .kpi.active .kpi-label, .kpi.active .kpi-sub { color: var(--text-muted); }
+
+    /* Edição pendente */
+    tr.dirty td { background: #fffbe6; }
+    .field-dirty { outline: 2px solid var(--wait) !important; outline-offset: -1px; border-radius: 6px; }
+    .row-actions { display: flex; gap: 4px; align-items: center; white-space: nowrap; }
+    .btn-save { border: 1px solid var(--ok); color: white; background: var(--ok); border-radius: 6px; padding: 4px 10px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
+    .btn-undo { border: 1px solid var(--border); background: white; color: var(--text); border-radius: 6px; padding: 4px 8px; cursor: pointer; font: inherit; }
+    .save-bar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 10; display: flex; gap: 12px; align-items: center;
+      background: #2f3a3f; color: white; padding: 10px 14px 10px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25); font-size: 14px; white-space: nowrap; }
+    .save-bar .btn-save { font-size: 14px; padding: 8px 16px; }
+    .save-bar .btn-undo { font-size: 14px; padding: 8px 12px; }
+    .field-select { padding: 6px; border: 1px solid transparent; background: transparent; border-radius: 6px; font: inherit; cursor: pointer; min-width: 110px; }
+    .field-select:hover { border-color: var(--border); background: white; }
+
+    .icon-btn { border: 1px solid transparent; background: none; cursor: pointer; border-radius: 6px; padding: 4px 8px; }
+    .icon-btn:hover { border-color: var(--no); background: var(--no-bg); }
+    .empty { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
+    .hidden { display: none !important; }
+
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div class="topbar">
+      <h1 class="section-title">Gestão de RSVP</h1>
+      <div class="topbar-right">
+        <span id="saveStatus"></span>
+        <button id="authBtn" class="btn btn-ghost">Entrar com Google</button>
+      </div>
+    </div>
+
+    <div id="loginMsg" class="empty">Faça login para ver os convidados.</div>
+
+    <div id="app" class="hidden">
+      <div class="seg guest-only" id="fEvento">
+        <button class="active" data-ev="casamento">💍 Casamento</button>
+        <button data-ev="prewedding">🥂 Pre Wedding</button>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="progress" id="progress"></div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="convidados">Convidados <span class="count" id="countGuests">0</span></button>
+        <button class="tab" data-tab="respostas">Respostas do site <span class="count" id="countResponses">0</span></button>
+      </div>
+
+      <div class="filters">
+        <input type="search" id="fSearch" placeholder="🔍 Buscar nome, telefone...">
+        <div class="chip-group" id="fStatus">
+          <button class="chip active" data-status="">Todos</button>
+          <button class="chip" data-status="confirmado">✓ Confirmados</button>
+          <button class="chip" data-status="aguardando">⏳ Aguardando</button>
+          <button class="chip" data-status="nao_vai">✕ Não vão</button>
+          <button class="chip guest-only" data-status="antigo" title="Confirmados há mais de 2 meses">⚠ Confirmou há +2 meses</button>
+        </div>
+        <select id="fNoivo" class="guest-only"><option value="">Noivo: todos</option></select>
+        <select id="fTipo" class="guest-only"><option value="">Tipo: todos</option></select>
+        <select id="fCategoria" class="guest-only"><option value="">Categoria: todas</option></select>
+        <button id="clearFilters" class="btn btn-ghost" style="padding: 6px 12px;">Limpar filtros</button>
+        <span class="spacer"></span>
+        <button id="addGuest" class="btn btn-primary guest-only" style="padding: 8px 14px;">+ Convidado</button>
+        <label class="btn btn-ghost guest-only" style="padding: 8px 14px; cursor: pointer;">
+          Importar CSV <input type="file" id="csvFile" accept=".csv" hidden>
+        </label>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead id="tHead"></thead>
+          <tbody id="tBody"></tbody>
+        </table>
+        <div id="emptyMsg" class="empty hidden"></div>
+      </div>
+    </div>
+
+    <div id="saveBar" class="save-bar hidden">
+      <span id="saveBarText"></span>
+      <button id="discardAll" class="btn-undo">Descartar</button>
+      <button id="saveAll" class="btn-save">💾 Salvar tudo</button>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { dbService, authService } from "./server/firebase-db.js";
+
+    // ====== Configuração ======
+    const STATUS = {
+      confirmado: { label: "✓ Confirmado", order: 0 },
+      aguardando: { label: "⏳ Aguardando", order: 1 },
+      nao_vai:    { label: "✕ Não vai",    order: 2 },
+    };
+    const STALE_MONTHS = 2; // "confirmou há mais de 2 meses"
+
+    // Opções dos selects (valores da planilha). Valores novos que aparecerem nos dados entram também.
+    const OPTIONS = {
+      noivoResponsavel: ["Elizabete", "Spider", "Comum"],
+      tipoConvidado: ["Convidado", "Padrinho"],
+      categoria: ["Familia", "Tractian", "Columbia", "USP", "Baja", "Amigos Passos", "Mckinsey", "Amigos TC", "IFC"],
+      confirmacao: ["Sim", "Sim (site)", "Sim (RSVP)", "Não", "Não (RSVP)", "Sem resposta"],
+    };
+    const optionsFor = (key) => [...new Set([...OPTIONS[key], ...unique(state.data.convidados, key)])];
+
+    const VIEWS = {
+      convidados: {
+        // status usado por evento (seletor Casamento | Pre Wedding)
+        statusKey: () => (state.event === "prewedding" ? "rsvpPreWedding" : "rsvp"),
+        columns: [
+          { key: "rsvp", label: "Casamento", type: "status", dateKey: "dataConfirmacao" },
+          { key: "rsvpPreWedding", label: "Pre Wedding", type: "status", dateKey: "dataConfirmacaoPreWedding", requires: "preWedding" },
+          { key: "nome", label: "Nome" },
+          { key: "noivoResponsavel", label: "Noivo", type: "select" },
+          { key: "tipoConvidado", label: "Tipo", type: "select" },
+          { key: "categoria", label: "Categoria", type: "select" },
+          { key: "telefone", label: "Telefone" },
+          { key: "dataConfirmacao", label: "Confirmou em", type: "confirmDate", readonly: true },
+          { key: "confirmacao", label: "Confirmação", type: "select" },
+          { key: "hospedadoNaFazenda", label: "Fazenda?", type: "bool" },
+          { key: "convidadoPrincipal", label: "Principal?", type: "bool" },
+          { key: "observacao", label: "Observação" },
+        ],
+        search: ["nome", "telefone", "categoria", "observacao"],
+        update: dbService.updateGuest,
+        remove: dbService.deleteGuest,
+      },
+      respostas: {
+        statusKey: () => "status",
+        columns: [
+          { key: "status", label: "Status", type: "status" },
+          { key: "timestamp", label: "Data", type: "date", readonly: true },
+          { key: "nome", label: "Nome" },
+          { key: "email", label: "E-mail" },
+          { key: "telefone", label: "Telefone" },
+          { key: "acompanhantes", label: "Acomp.", type: "number" },
+          { key: "mensagem", label: "Mensagem" },
+          { key: "lang", label: "Idioma", readonly: true },
+        ],
+        search: ["nome", "email", "telefone", "mensagem"],
+        update: dbService.updateResponse,
+        remove: dbService.deleteResponse,
+      },
+    };
+
+    // ====== Estado ======
+    const state = {
+      tab: "convidados",
+      event: "casamento",
+      data: { convidados: [], respostas: [] },
+      sort: { convidados: { key: "nome", dir: 1 }, respostas: { key: "timestamp", dir: -1 } },
+      filters: { search: "", status: "", noivo: "", tipo: "", categoria: "" },
+      // Edições ainda não salvas: { [tab]: { [id]: { campo: valor } } }
+      pending: { convidados: {}, respostas: {} },
+    };
+    let unsubscribers = [];
+    let currentUser = null;
+    const $ = (id) => document.getElementById(id);
+
+    // ====== Utilidades ======
+    function el(tag, props = {}, ...children) {
+      const node = document.createElement(tag);
+      Object.entries(props).forEach(([k, v]) => {
+        if (k === "class") node.className = v;
+        else if (k === "dataset") Object.assign(node.dataset, v);
+        else if (k === "style") node.style.cssText = v;
+        else node[k] = v;
+      });
+      node.append(...children.filter((c) => c != null));
+      return node;
+    }
+
+    // Registro no console do navegador (F12) para diagnóstico
+    function log(message, type = "info", payload = null) {
+      console[type === "error" ? "error" : "log"](`[RSVP] ${message}`, payload ?? "");
+    }
+
+    function flash(text) {
+      $("saveStatus").textContent = text;
+      setTimeout(() => ($("saveStatus").textContent = ""), 2500);
+    }
+
+    const norm = (v) => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    const unique = (rows, key) => [...new Set(rows.map((r) => String(r[key] ?? "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
+    const today = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+    const fmtDate = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "");
+
+    // Normaliza status (inclui valores antigos como "não vai")
+    function normStatus(value) {
+      const v = norm(value);
+      if (v === "confirmado") return "confirmado";
+      if (v === "nao_vai" || v === "nao vai") return "nao_vai";
+      return "aguardando";
+    }
+
+    // Confirmado no casamento há mais de STALE_MONTHS meses
+    function isStale(r) {
+      if (normStatus(r.rsvp) !== "confirmado" || !r.dataConfirmacao) return false;
+      const limit = new Date();
+      limit.setMonth(limit.getMonth() - STALE_MONTHS);
+      return new Date(`${r.dataConfirmacao.slice(0, 10)}T00:00`) < limit;
+    }
+
+    // ====== Filtro + ordenação ======
+    function filteredRows(tab, ignoreStatus = false) {
+      const view = VIEWS[tab];
+      const key = view.statusKey();
+      const f = state.filters;
+      const q = norm(f.search);
+      return state.data[tab].filter((r) => {
+        if (tab === "convidados") {
+          if (state.event === "prewedding" && !r.preWedding) return false;
+          if (f.noivo && String(r.noivoResponsavel ?? "").trim() !== f.noivo) return false;
+          if (f.tipo && String(r.tipoConvidado ?? "").trim() !== f.tipo) return false;
+          if (f.categoria && String(r.categoria ?? "").trim() !== f.categoria) return false;
+        }
+        if (!ignoreStatus && f.status) {
+          if (f.status === "antigo" ? !isStale(r) : normStatus(r[key]) !== f.status) return false;
+        }
+        if (q && !view.search.some((k) => norm(r[k]).includes(q))) return false;
+        return true;
+      });
+    }
+
+    function sortRows(rows, tab) {
+      const { key, dir } = state.sort[tab];
+      const col = VIEWS[tab].columns.find((c) => c.key === key);
+      const val = (r) => {
+        if (col?.type === "status") return col.requires && !r[col.requires] ? 9 : STATUS[normStatus(r[key])].order;
+        if (col?.type === "number") return Number(r[key]) || 0;
+        if (col?.type === "bool") return r[key] ? 0 : 1;
+        return String(r[key] ?? "");
+      };
+      return [...rows].sort((a, b) => {
+        const va = val(a), vb = val(b);
+        const cmp = typeof va === "number" ? va - vb : va.localeCompare(vb, "pt", { numeric: true, sensitivity: "base" });
+        return cmp * dir || String(a.nome ?? "").localeCompare(String(b.nome ?? ""), "pt");
+      });
+    }
+
+    // ====== Resumo (respeita os filtros, exceto o de status) ======
+    function renderKpis() {
+      const tab = state.tab;
+      const rows = filteredRows(tab, true);
+      const key = VIEWS[tab].statusKey();
+      // Na aba de respostas, cada resposta = 1 pessoa + acompanhantes
+      const people = (r) => (tab === "respostas" ? 1 + (Number(r.acompanhantes) || 0) : 1);
+      const sum = (status) => rows.filter((r) => !status || normStatus(r[key]) === status).reduce((n, r) => n + people(r), 0);
+      const total = sum(), ok = sum("confirmado"), wait = sum("aguardando"), no = sum("nao_vai");
+      const pct = (n) => (total ? Math.round((n / total) * 100) : 0);
+      const unit = tab === "respostas" ? "pessoas"
+        : state.event === "prewedding" ? "convidados do pre wedding" : "convidados";
+
+      const cards = [
+        kpi("kpi-ok", "✓ Confirmados", ok, `${pct(ok)}% de ${total} ${unit}`, "confirmado"),
+        kpi("kpi-wait", "⏳ Faltam confirmar", wait, `${pct(wait)}% de ${total} ${unit}`, "aguardando"),
+        kpi("kpi-no", "✕ Não vão", no, `${pct(no)}% de ${total} ${unit}`, "nao_vai"),
+      ];
+      if (tab === "convidados" && state.event === "casamento") {
+        const stale = rows.filter(isStale).length;
+        cards.push(kpi("kpi-stale", `⚠ Confirmou há +${STALE_MONTHS} meses`, stale, "vale reconfirmar", "antigo"));
+      }
+      $("kpis").replaceChildren(...cards);
+      $("progress").replaceChildren(
+        el("div", { style: `width:${pct(ok)}%; background:var(--ok)`, title: `Confirmados: ${ok}` }),
+        el("div", { style: `width:${pct(wait)}%; background:var(--wait)`, title: `Aguardando: ${wait}` }),
+        el("div", { style: `width:${pct(no)}%; background:var(--no)`, title: `Não vão: ${no}` }),
+      );
+    }
+
+    // Card clicável: aplica o filtro de status correspondente na tabela
+    function kpi(cls, label, value, sub, status) {
+      const active = state.filters.status === status;
+      return el("div", { class: `kpi ${cls} ${active ? "active" : ""}`, dataset: { status }, title: "Clique para filtrar a tabela" },
+        el("div", { class: "kpi-label", textContent: label }),
+        el("div", { class: "kpi-value", textContent: value }),
+        el("div", { class: "kpi-sub", textContent: sub }));
+    }
+
+    // ====== Tabela ======
+    function renderHead() {
+      const tab = state.tab;
+      const { key, dir } = state.sort[tab];
+      const tr = el("tr");
+      VIEWS[tab].columns.forEach((col) => {
+        const sorted = col.key === key;
+        tr.appendChild(el("th", { class: `sortable ${sorted ? "sorted" : ""}`, dataset: { key: col.key } },
+          col.label, el("span", { class: "arrow", textContent: sorted ? (dir === 1 ? "▲" : "▼") : "↕" })));
+      });
+      tr.appendChild(el("th"));
+      $("tHead").replaceChildren(tr);
+    }
+
+    function buildField(col, item) {
+      const value = item[col.key];
+      if (col.type === "status") {
+        // Colunas com "requires" (Pre Wedding) têm a opção N/A = não convidado
+        const status = col.requires && !item[col.requires] ? "na" : normStatus(value);
+        const select = el("select", { class: `status-select status-${status}`, dataset: { key: col.key } });
+        Object.entries(STATUS).forEach(([k, s]) => select.add(new Option(s.label, k)));
+        if (col.requires) select.add(new Option("N/A", "na"));
+        select.value = status;
+        return select;
+      }
+      if (col.type === "confirmDate") {
+        return el("span", { class: "date-cell" }, fmtDate(value) || el("span", { class: "muted", textContent: "—" }),
+          isStale(item) ? el("span", { class: "stale-badge", textContent: `⚠ +${STALE_MONTHS} meses` }) : null);
+      }
+      if (col.type === "bool") {
+        return el("input", { type: "checkbox", checked: !!value, dataset: { key: col.key }, style: "width:18px;height:18px;cursor:pointer" });
+      }
+      if (col.type === "select") {
+        const select = el("select", { class: "field-select", dataset: { key: col.key } });
+        select.add(new Option("—", ""));
+        optionsFor(col.key).forEach((o) => select.add(new Option(o, o)));
+        select.value = value ?? "";
+        return select;
+      }
+      const input = el("input", {
+        class: "editable-field",
+        type: col.type === "number" ? "number" : "text",
+        value: col.type === "date" && value ? new Date(value).toLocaleString("pt-BR") : (value ?? ""),
+        readOnly: !!col.readonly,
+        dataset: { key: col.key },
+      });
+      return input;
+    }
+
+    function renderTable() {
+      const tab = state.tab;
+      const view = VIEWS[tab];
+      const key = view.statusKey();
+      const rows = sortRows(filteredRows(tab), tab);
+      const pending = state.pending[tab];
+      $("tBody").replaceChildren(...rows.map((saved) => {
+        // Mostra os valores editados (ainda não salvos) por cima dos salvos
+        const item = { ...saved, ...pending[saved.id] };
+        const tr = el("tr", { class: `row-${normStatus(item[key])}`, dataset: { id: item.id } });
+        view.columns.forEach((col) => tr.appendChild(el("td", {}, buildField(col, item))));
+        tr.appendChild(el("td", { class: "actions-cell" }));
+        refreshRow(tr);
+        return tr;
+      }));
+
+      const empty = $("emptyMsg");
+      empty.classList.toggle("hidden", rows.length > 0);
+      if (!rows.length) {
+        empty.textContent = state.data[tab].length
+          ? "Nenhum resultado para esses filtros."
+          : tab === "convidados" ? "Nenhum convidado ainda. Use “Importar CSV” para carregar a lista." : "Nenhuma resposta ainda.";
+      }
+    }
+
+    function renderFilterOptions() {
+      [["fNoivo", "noivoResponsavel", "Noivo: todos"],
+       ["fTipo", "tipoConvidado", "Tipo: todos"],
+       ["fCategoria", "categoria", "Categoria: todas"]].forEach(([id, key, label]) => {
+        const values = optionsFor(key);
+        const select = $(id);
+        const current = select.value;
+        select.replaceChildren(new Option(label, ""), ...values.map((v) => new Option(v, v)));
+        select.value = values.includes(current) ? current : "";
+      });
+    }
+
+    function render() {
+      // No modo Pre Wedding, conta só os convidados do pre wedding
+      $("countGuests").textContent = state.event === "prewedding"
+        ? state.data.convidados.filter((r) => r.preWedding).length
+        : state.data.convidados.length;
+      $("countResponses").textContent = state.data.respostas.length;
+      document.querySelectorAll(".guest-only").forEach((n) => n.classList.toggle("hidden", state.tab !== "convidados"));
+      // O filtro "+2 meses" só vale para o casamento
+      document.querySelector('.chip[data-status=antigo]').classList.toggle("hidden", state.tab !== "convidados" || state.event !== "casamento");
+      renderKpis();
+      renderHead();
+      renderTable();
+    }
+
+    // ====== Edição: as alterações ficam pendentes até clicar em "Salvar" ======
+    const savedRow = (tab, id) => state.data[tab].find((r) => r.id === id) || {};
+    const pendingCount = () => Object.keys(state.pending.convidados).length + Object.keys(state.pending.respostas).length;
+
+    function readField(target, col) {
+      if (col.type === "bool") return target.checked;
+      if (col.type === "number") return parseInt(target.value, 10) || 0;
+      return target.value.trim();
+    }
+
+    // Atualiza visual da linha (destaques, cor do status, botões) sem redesenhar a tabela
+    function refreshRow(tr) {
+      const tab = state.tab;
+      const id = tr.dataset.id;
+      const changes = state.pending[tab][id] || {};
+      const dirty = Object.keys(changes).length > 0;
+      const item = { ...savedRow(tab, id), ...changes };
+      tr.className = `row-${normStatus(item[VIEWS[tab].statusKey()])}${dirty ? " dirty" : ""}`;
+      tr.querySelectorAll("[data-key]").forEach((f) => {
+        f.classList.toggle("field-dirty", f.dataset.key in changes);
+        if (f.classList.contains("status-select")) f.className = `status-select status-${f.value === "na" ? "na" : normStatus(f.value)}${f.dataset.key in changes ? " field-dirty" : ""}`;
+      });
+      tr.querySelector(".actions-cell").replaceChildren(el("div", { class: "row-actions" },
+        dirty ? el("button", { class: "btn-save", textContent: "💾 Salvar", title: "Salvar alterações desta linha" }) : null,
+        dirty ? el("button", { class: "btn-undo", textContent: "↺", title: "Desfazer alterações desta linha" }) : null,
+        el("button", { class: "icon-btn btn-delete", title: "Remover", textContent: "🗑" })));
+      refreshSaveBar();
+    }
+
+    function refreshSaveBar() {
+      const n = pendingCount();
+      $("saveBar").classList.toggle("hidden", n === 0);
+      $("saveBarText").textContent = `✎ ${n} linha(s) com alterações não salvas`;
+    }
+
+    $("tBody").addEventListener("change", (e) => {
+      const target = e.target;
+      const tr = target.closest("tr");
+      const col = VIEWS[state.tab].columns.find((c) => c.key === target.dataset.key);
+      if (!tr?.dataset.id || !col || col.readonly) return;
+
+      const id = tr.dataset.id;
+      const pending = state.pending[state.tab];
+      const changes = { ...pending[id] };
+      const value = readField(target, col);
+      // Pre Wedding: "N/A" = não convidado; qualquer status = convidado
+      const fields = !col.requires ? { [col.key]: value }
+        : value === "na" ? { [col.requires]: false, [col.key]: null }
+        : { [col.requires]: true, [col.key]: value };
+
+      const saved = savedRow(state.tab, id);
+      Object.entries(fields).forEach(([key, v]) => {
+        const original = saved[key];
+        // Voltou ao valor salvo -> deixa de ser alteração
+        const same = typeof v === "boolean" ? !!original === v
+          : v === null ? original == null
+          : col.type === "status" ? normStatus(original) === v
+          : String(original ?? "") === String(v);
+        if (same) delete changes[key]; else changes[key] = v;
+      });
+      if (Object.keys(changes).length) pending[id] = changes; else delete pending[id];
+      refreshRow(tr);
+    });
+
+    async function saveRow(tab, id) {
+      const changes = state.pending[tab][id];
+      if (!changes) return;
+      const view = VIEWS[tab];
+      const update = { ...changes };
+      // Mudou o status -> registra a data da resposta
+      view.columns.filter((c) => c.dateKey && c.key in changes)
+        .forEach((c) => (update[c.dateKey] = changes[c.key] == null || changes[c.key] === "aguardando" ? null : today()));
+      await view.update(id, update);
+      delete state.pending[tab][id];
+      log(`${tab}/${id} salvo`, "success", update);
+    }
+
+    async function saveAll() {
+      $("saveStatus").textContent = "Salvando...";
+      let ok = 0, fail = 0;
+      for (const tab of Object.keys(state.pending)) {
+        for (const id of Object.keys(state.pending[tab])) {
+          try { await saveRow(tab, id); ok++; }
+          catch (err) { fail++; log(`Erro ao salvar ${tab}/${id}: ${err.message}`, "error"); }
+        }
+      }
+      flash(fail ? `Erro ao salvar ${fail} linha(s)` : `✓ ${ok} linha(s) salva(s)`);
+      render();
+    }
+
+    $("saveAll").addEventListener("click", saveAll);
+    $("discardAll").addEventListener("click", () => {
+      if (!confirm("Descartar todas as alterações não salvas?")) return;
+      state.pending = { convidados: {}, respostas: {} };
+      render();
+    });
+
+    // Evita perder alterações ao fechar/recarregar a página
+    window.addEventListener("beforeunload", (e) => { if (pendingCount()) { e.preventDefault(); e.returnValue = ""; } });
+
+    $("tBody").addEventListener("click", async (e) => {
+      const tr = e.target.closest("tr");
+      if (e.target.classList.contains("btn-save")) {
+        try {
+          await saveRow(state.tab, tr.dataset.id);
+          flash("✓ Salvo");
+          render();
+        } catch (err) {
+          log(`Erro ao salvar ${tr.dataset.id}: ${err.message}`, "error");
+          flash("Erro ao salvar!");
+        }
+        return;
+      }
+      if (e.target.classList.contains("btn-undo")) {
+        delete state.pending[state.tab][tr.dataset.id];
+        render();
+        return;
+      }
+      if (!e.target.classList.contains("btn-delete")) return;
+      const nome = tr.querySelector('[data-key="nome"]')?.value || tr.dataset.id;
+      if (!confirm(`Remover "${nome}" permanentemente?`)) return;
+      try {
+        await VIEWS[state.tab].remove(tr.dataset.id);
+        delete state.pending[state.tab][tr.dataset.id];
+        refreshSaveBar();
+        log(`${state.tab}/${tr.dataset.id} removido`, "success");
+        flash("Removido");
+      } catch (err) {
+        log(`Erro ao remover: ${err.message}`, "error");
+        flash("Erro ao remover!");
+      }
+    });
+
+    // ====== Ordenação, abas, evento e filtros ======
+    $("tHead").addEventListener("click", (e) => {
+      const th = e.target.closest("th.sortable");
+      if (!th) return;
+      const s = state.sort[state.tab];
+      s.dir = s.key === th.dataset.key ? -s.dir : 1;
+      s.key = th.dataset.key;
+      renderHead();
+      renderTable();
+    });
+
+    document.querySelectorAll(".tab").forEach((btn) => btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b === btn));
+      state.tab = btn.dataset.tab;
+      if (state.filters.status === "antigo") setStatusFilter("");
+      render();
+    }));
+
+    $("fEvento").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      $("fEvento").querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
+      state.event = btn.dataset.ev;
+      if (state.filters.status === "antigo") setStatusFilter("");
+      render();
+    });
+
+    function setStatusFilter(status) {
+      state.filters.status = status;
+      $("fStatus").querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c.dataset.status === status));
+    }
+
+    $("fStatus").addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+      setStatusFilter(chip.dataset.status);
+      renderKpis();
+      renderTable();
+    });
+
+    $("kpis").addEventListener("click", (e) => {
+      const card = e.target.closest(".kpi");
+      if (!card) return;
+      // Clicar de novo no card ativo remove o filtro
+      setStatusFilter(state.filters.status === card.dataset.status ? "" : card.dataset.status);
+      renderKpis();
+      renderTable();
+    });
+
+    [["fSearch", "search"], ["fNoivo", "noivo"], ["fTipo", "tipo"], ["fCategoria", "categoria"]].forEach(([id, key]) => {
+      $(id).addEventListener("input", () => { state.filters[key] = $(id).value; renderKpis(); renderTable(); });
+    });
+
+    $("clearFilters").addEventListener("click", () => {
+      Object.keys(state.filters).forEach((k) => (state.filters[k] = ""));
+      ["fSearch", "fNoivo", "fTipo", "fCategoria"].forEach((id) => ($(id).value = ""));
+      setStatusFilter("");
+      render();
+    });
+
+    // ====== Novo convidado ======
+    $("addGuest").addEventListener("click", async () => {
+      const nome = prompt("Nome do convidado:");
+      if (!nome?.trim()) return;
+      try {
+        await dbService.addGuest({
+          nome: nome.trim(),
+          noivoResponsavel: state.filters.noivo,
+          tipoConvidado: state.filters.tipo || "Convidado",
+          categoria: state.filters.categoria,
+          telefone: "",
+          preWedding: state.event === "prewedding",
+          hospedadoNaFazenda: false,
+          convidadoPrincipal: true,
+          rsvp: "aguardando",
+          confirmacao: "Sem resposta",
+        });
+        log(`Convidado "${nome}" adicionado`, "success");
+        flash("✓ Adicionado");
+      } catch (err) {
+        log(`Erro ao adicionar: ${err.message}`, "error");
+      }
+    });
+
+    // ====== Importação do CSV (Google Sheets → aba "Lista de Convidados") ======
+    function parseCSV(text) {
+      // Separador: vírgula (download do Google Sheets) ou ponto e vírgula (Excel)
+      const firstLine = text.slice(0, text.search(/\r?\n/) >>> 0);
+      const sep = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ";" : ",";
+      const rows = [];
+      let row = [], field = "", quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (quoted) {
+          if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') quoted = false;
+          else field += c;
+        } else if (c === '"') quoted = true;
+        else if (c === sep) { row.push(field); field = ""; }
+        else if (c === "\n" || c === "\r") {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(field); rows.push(row); row = []; field = "";
+        } else field += c;
+      }
+      if (field || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    // Lê como UTF-8; se vier com caracteres quebrados (export do Excel), tenta Windows-1252
+    async function readText(file) {
+      const buf = await file.arrayBuffer();
+      const utf8 = new TextDecoder("utf-8").decode(buf);
+      return utf8.includes("\uFFFD") ? new TextDecoder("windows-1252").decode(buf) : utf8;
+    }
+
+    // Converte o CSV em convidados. Só inclui campos cujas colunas existem no CSV,
+    // e a importação faz merge -> campos que não estão no CSV são preservados.
+    function csvToGuests(text) {
+      const [header, ...lines] = parseCSV(text.replace(/^\uFEFF/, ""));
+      const idx = (...names) => header.findIndex((h) => names.some((n) => norm(h) === norm(n)));
+      const col = {
+        num: idx("#"), nome: idx("Convidado", "Convidados"), noivo: idx("Noivo"), tel: idx("Tel", "Telefone"),
+        categoria: idx("Categoria"), tipo: idx("Tipo Convidado"), pre: idx("Pre Wedding"),
+        rsvpPre: idx("Confirmado Pre Wedding", "RSVP Pre Wedding"),
+        fazenda: idx("Hospedados na fazenda?"), principal: idx("Convidado principal"),
+        rsvp: idx("RSVP?", "RSVP"), confirmacao: idx("Confirmação"), observacao: idx("Observação"),
+      };
+      const missing = ["num", "nome", "noivo", "tipo", "pre"].filter((k) => col[k] < 0);
+      if (missing.length) {
+        throw new Error('Este CSV não parece ser a aba "Lista de Convidados" (faltam as colunas #, Convidado, Noivo, Tipo Convidado e Pre Wedding).');
+      }
+
+      const get = (r, k) => (col[k] >= 0 ? String(r[col[k]] ?? "").replace(/\uFFFD/g, " ").replace(/\s+/g, " ").trim() : undefined);
+      const yes = (v) => /^(1|sim|s|y|yes|true|verdadeiro)\b/.test(norm(v));
+      const phone = (v) => (/error|#n\/a/i.test(v) ? "" : v.replace(/[^\d+()\- ]/g, " ").replace(/\s+/g, " ").trim());
+      // RSVP?: 1 = confirmado, 0 = não vai, ? = aguardando. Sem RSVP?, usa a coluna Confirmação.
+      const rsvp = (v, conf) => {
+        if (v === "1") return "confirmado";
+        if (v === "0") return "nao_vai";
+        if (v === undefined && /^sim/i.test(conf ?? "")) return "confirmado";
+        if (v === undefined && /^n[aã]o/i.test(conf ?? "")) return "nao_vai";
+        return "aguardando";
+      };
+      // Data dd/mm/aaaa na Observação ("Confirmou no site há mais de 2 meses (08/03/2026)")
+      const dateFrom = (v) => {
+        const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(v ?? "");
+        return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
+      };
+
+      // ID estável: "g099" pelo #; acompanhantes "+1" que repetem o # viram "g099-2";
+      // linhas sem # usam o nome ("n-vitoria-velho-1").
+      const seen = new Map();
+      const makeId = (num, nome) => {
+        const base = /^\d+$/.test(num) ? `g${num.padStart(3, "0")}` : `n-${norm(nome).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+        const n = (seen.get(base) || 0) + 1;
+        seen.set(base, n);
+        return n === 1 ? base : `${base}-${n}`;
+      };
+
+      return lines.filter((r) => get(r, "nome")).map((r) => {
+        const id = makeId(get(r, "num"), get(r, "nome"));
+        const principal = get(r, "principal");
+        const guest = {
+          id,
+          nome: get(r, "nome"),
+          noivoResponsavel: get(r, "noivo"),
+          telefone: col.tel >= 0 ? phone(get(r, "tel")) : undefined,
+          categoria: get(r, "categoria"),
+          tipoConvidado: get(r, "tipo"),
+          preWedding: yes(get(r, "pre")),
+          hospedadoNaFazenda: col.fazenda >= 0 ? yes(get(r, "fazenda")) : undefined,
+          convidadoPrincipal: principal !== undefined ? yes(principal) : undefined,
+          idiomaConvite: principal !== undefined ? (/english/i.test(principal) ? "EN" : "PT") : undefined,
+          rsvp: rsvp(get(r, "rsvp"), get(r, "confirmacao")),
+          // Confirmado Pre Wedding: 1 / 0 / ? (vazio = não convidado)
+          rsvpPreWedding: col.rsvpPre >= 0 ? (get(r, "rsvpPre") ? rsvp(get(r, "rsvpPre")) : null) : undefined,
+          confirmacao: get(r, "confirmacao"),
+          observacao: get(r, "observacao"),
+          dataConfirmacao: col.observacao >= 0 ? dateFrom(get(r, "observacao")) : undefined,
+        };
+        Object.keys(guest).forEach((k) => guest[k] === undefined && delete guest[k]);
+        return guest;
+      });
+    }
+
+    $("csvFile").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      try {
+        const guests = csvToGuests(await readText(file));
+        const ids = new Set(guests.map((g) => g.id));
+        const toRemove = state.data.convidados.filter((g) => !ids.has(g.id));
+        let msg = `Importar ${guests.length} convidados de "${file.name}"?\n\n` +
+          `• Os dados da planilha substituem os do site (status, nome, telefone...).\n` +
+          (guests.some((g) => "rsvpPreWedding" in g)
+            ? `• O status do Pre Wedding vem da coluna "Confirmado Pre Wedding".`
+            : `• O status do Pre Wedding marcado no site é mantido.`);
+        if (toRemove.length) msg += `\n• ${toRemove.length} convidado(s) que não estão no CSV serão REMOVIDOS: ` +
+          toRemove.slice(0, 8).map((g) => g.nome).join(", ") + (toRemove.length > 8 ? "..." : "");
+        if (!confirm(msg)) return;
+
+        $("saveStatus").textContent = "Importando...";
+        await dbService.importGuests(guests);
+        if (toRemove.length) await dbService.deleteGuests(toRemove.map((g) => g.id));
+        log(`${guests.length} convidados importados, ${toRemove.length} removidos`, "success");
+        flash(`✓ ${guests.length} importados`);
+      } catch (err) {
+        log(`Erro na importação: ${err.message}`, "error");
+        alert(`Erro na importação: ${err.message}`);
+        flash("Erro na importação!");
+      }
+    });
+
+    // ====== Login + sincronização ======
+    function startListening() {
+      const onError = (name) => (err) => {
+        log(`Erro ao ler ${name}: ${err.message}`, "error");
+        $("saveStatus").textContent = "Sem permissão — confira as regras e o e-mail logado.";
+      };
+      unsubscribers = [
+        dbService.subscribeToGuests((data) => {
+          state.data.convidados = data;
+          log(`Convidados sincronizados: ${data.length}`, "success");
+          renderFilterOptions();
+          render();
+        }, onError("convidados")),
+        dbService.subscribeToResponses((data) => {
+          state.data.respostas = data;
+          log(`Respostas sincronizadas: ${data.length}`, "success");
+          render();
+        }, onError("respostas")),
+      ];
+    }
+
+    authService.onChange((user) => {
+      currentUser = user;
+      unsubscribers.forEach((u) => u());
+      unsubscribers = [];
+      $("app").classList.toggle("hidden", !user);
+      $("loginMsg").classList.toggle("hidden", !!user);
+      if (user) {
+        $("authBtn").textContent = `Sair (${user.email})`;
+        log(`Logado como ${user.email}`, "success");
+        startListening();
+      } else {
+        $("authBtn").textContent = "Entrar com Google";
+        $("saveStatus").textContent = "";
+      }
+    });
+
+    $("authBtn").addEventListener("click", () => {
+      (currentUser ? authService.signOut() : authService.signIn())
+        .catch((err) => log(`Erro de login: ${err.message}`, "error"));
+    });
+  </script>
+</body>
+</html>

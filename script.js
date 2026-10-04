@@ -7,7 +7,6 @@ const WEDDING_CONFIG = {
   venueAddress: "Rodovia Arão Sahm, S/N | Mairiporã - São Paulo",
   mapsQuery: "Fazenda Fagundes, Rodovia Arão Sahm, S/N, Mairiporã - São Paulo",
   rsvpEmail: "bruno.diego.yoshikawa@gmail.com", // Altere para o e-mail que receberá os RSVPs (fallback)
-  sheetWebhookUrl: "https://script.google.com/macros/s/AKfycbyRu4kDtvoZvDUpv0-vxQVbidC-tVOg3oy_sBkDPGNDfcG501HD2z6l5UqgGleoPwIN/exec", // Cole aqui a URL do Web App do Google Apps Script quando publicar
   pixKey: "8f2d4a5f-8cf9-4be9-95dd-d4d490090077",
   pixReceiverName: "Bruno Diego Yoshikawa",
   pixReceiverCity: "SAO PAULO",
@@ -83,6 +82,7 @@ const I18N = {
     "form.feedback.sent": "Abrimos seu aplicativo de e-mail para enviar a confirmação.",
     "form.feedback.success": "Recebemos sua confirmação. Obrigado!",
     "form.feedback.error": "Não foi possível enviar agora. Tente novamente em instantes.",
+    "form.feedback.duplicate": "Já recebemos uma confirmação com este e-mail. Para alterar, fale com os noivos.",
     "form.feedback.missingConfig": "Configuração de envio ausente. Avise os noivos, por favor.",
     "footer.comCarinho": "Com carinho,",
     "footer.direitos": "Todos os direitos reservados",
@@ -157,6 +157,7 @@ const I18N = {
     "form.feedback.sent": "We opened your email app to send the RSVP.",
     "form.feedback.success": "We received your RSVP. Thank you!",
     "form.feedback.error": "We couldn't send now. Please try again shortly.",
+    "form.feedback.duplicate": "We already received an RSVP with this e-mail. To change it, please contact the couple.",
     "form.feedback.missingConfig": "Submission configuration missing. Please notify the couple.",
     "footer.comCarinho": "With love,",
     "footer.direitos": "All rights reserved",
@@ -389,8 +390,6 @@ function setupRSVPForm() {
     const dict = I18N[currentLang] || I18N.pt;
 
     const payload = {
-      coupleNames: WEDDING_CONFIG.coupleNames,
-      timestamp: new Date().toISOString(),
       lang: currentLang,
       nome,
       email,
@@ -399,27 +398,23 @@ function setupRSVPForm() {
       mensagem,
     };
 
-    const endpoint = (WEDDING_CONFIG.sheetWebhookUrl || "").trim();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
 
-    if (!endpoint) {
-      if (feedback) feedback.textContent = dict["form.feedback.missingConfig"];
-      return;
-    }
-
-    // Envia para Apps Script (Sheets + e-mail) sem CORS/preflight
-    fetch(endpoint, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload),
-    })
+    // Envia para o Firestore (server/firebase-db.js)
+    import("./server/firebase-db.js")
+      .then(({ dbService }) => dbService.submitRSVP(payload))
       .then(() => {
-        // Resposta é "opaque" em no-cors; assumimos sucesso
         if (feedback) feedback.textContent = dict["form.feedback.success"];
         form.reset();
       })
-      .catch(() => {
-        if (feedback) feedback.textContent = dict["form.feedback.error"];
+      .catch((err) => {
+        console.error("RSVP error:", err);
+        const key = err?.code === "permission-denied" ? "form.feedback.duplicate" : "form.feedback.error";
+        if (feedback) feedback.textContent = dict[key];
+      })
+      .finally(() => {
+        if (submitBtn) submitBtn.disabled = false;
       });
   });
 }

@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admins: e-mails Google que podem ver/editar as respostas (admin-rsvp.html)
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified
+        && request.auth.token.email in ['bruno.diego.yoshikawa@gmail.com','elizabetevindilino@gmail.com','juarezcamargo68@hotmail.com', 'jcamargo.eventos@gmail.com'];
+    }
+
+    match /respostas/{id} {
+      // Formulário público do site: só pode criar, com campos válidos.
+      // O ID do documento é o e-mail -> um RSVP por e-mail (criar sobre um
+      // documento existente conta como update, que só admins podem fazer).
+      allow create: if id == request.resource.data.email
+                    && request.resource.data.keys().hasOnly(
+                         ['nome', 'email', 'telefone', 'acompanhantes', 'mensagem', 'lang', 'timestamp', 'status'])
+                    && request.resource.data.nome is string
+                    && request.resource.data.nome.size() > 0
+                    && request.resource.data.nome.size() <= 200
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() <= 200
+                    && request.resource.data.email.matches('^[a-z0-9._%+-]+@[a-z0-9.-]+[.][a-z]{2,}$')
+                    && request.resource.data.mensagem.size() <= 2000
+                    && request.resource.data.acompanhantes is int
+                    && request.resource.data.acompanhantes >= 0
+                    && request.resource.data.acompanhantes <= 10;
+
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Lista de convidados: só admins
+    match /convidados/{id} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
