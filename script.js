@@ -471,6 +471,40 @@ function setupRSVPForm() {
   });
 }
 
+// ====== Animação ao rolar: elementos aparecem quando entram na tela ======
+// Além destes seletores, qualquer elemento com class="reveal" no HTML também anima.
+const REVEAL_SELECTORS = [
+  ".hero-content > *",
+  ".section-title",
+  ".section-intro",
+  ".about-text",
+  ".dress-code",
+  "#local .grid-2 > *",
+  ".form",
+  ".gift-card",
+];
+
+function setupReveal() {
+  if (!("IntersectionObserver" in window)) return; // navegador antigo: tudo visível
+  const els = [...document.querySelectorAll([".reveal", ...REVEAL_SELECTORS].join(","))];
+  els.forEach((el) => el.classList.add("reveal"));
+  // Dentro de um elemento que já anima, não anima de novo
+  const roots = els.filter((el) => !el.parentElement.closest(".reveal"));
+  els.filter((el) => !roots.includes(el)).forEach((el) => el.classList.remove("reveal"));
+
+  const io = new IntersectionObserver((entries) => {
+    // Entrou na tela, ou ficou para trás num salto (link com âncora, reload no meio da página)
+    const shown = entries.filter((e) => e.isIntersecting || e.boundingClientRect.bottom < 0);
+    // Os que entram juntos aparecem em cascata (ex.: cards de presentes)
+    shown.forEach((e, i) => {
+      e.target.style.setProperty("--reveal-delay", `${Math.min(i, 5) * 90}ms`);
+      e.target.classList.add("is-visible");
+      io.unobserve(e.target); // anima só uma vez
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+  roots.forEach((el) => io.observe(el));
+}
+
 // ====== Init ======
 document.addEventListener("DOMContentLoaded", () => {
   currentLang = getLanguage();
@@ -481,6 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupRSVPForm();
   setupLanguageSwitcherUI();
   setupGiftsPix();
+  setupReveal();
 });
 
 // ====== Language switcher UI (flags dropdown) ======

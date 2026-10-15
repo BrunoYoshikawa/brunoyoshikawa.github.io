@@ -709,3 +709,42 @@ input, button, textarea, select {
 }
 
 
+
+/* ====== Animações ====== */
+/* Transição entre páginas (Chrome/Edge 126+, Safari 18.2+; nos outros a troca é normal) */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+}
+/* O cabeçalho fica parado enquanto o conteúdo troca */
+.site-header {
+  view-transition-name: site-header;
+}
+
+/* Elementos aparecendo ao rolar (classe .reveal adicionada por setupReveal em script.js).
+   Só esconde quando o JS está ativo (classe .js no <html>), para o conteúdo nunca sumir. */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Quem pede menos movimento no sistema não vê animações */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
