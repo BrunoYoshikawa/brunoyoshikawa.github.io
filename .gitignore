@@ -12,3 +12,8 @@
 .env.*
 
 Casamento/
+# Firebase / verificador de presentes
+verificador/node_modules/
+verificador/.env*
+.firebase/
+*-debug.log

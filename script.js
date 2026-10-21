@@ -684,7 +684,32 @@ function setupGiftsPix() {
     modal.setAttribute("aria-hidden", "false");
   });
 
-  // Envia nome + mensagem por e-mail. No cartão, segue para o Stripe em seguida.
+  // Cartão: registra o presente no Firestore e segue para o Stripe com o id do registro.
+  // O verificador (verificador/index.js, no GitHub Actions) confirma o pagamento e avisa por e-mail.
+  async function payWithCard(nome, mensagem) {
+    feedback.textContent = t("gifts.msg.sending");
+    form.querySelectorAll("button").forEach((b) => (b.disabled = true));
+    let url = gift.cardUrl;
+    try {
+      const { dbService } = await import("./server/firebase-db.js");
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000));
+      const id = await Promise.race([dbService.registerGift({
+        presente: gift.name,
+        valorSugerido: gift.amount,
+        nome,
+        mensagem,
+        linkPagamento: gift.cardUrl,
+        lang: currentLang,
+      }), timeout]);
+      url += (url.includes("?") ? "&" : "?") + "client_reference_id=" + encodeURIComponent(id);
+    } catch (err) {
+      // Não trava o pagamento: sem o id, o pagamento chega como "sem mensagem no site"
+      console.error("Gift register error:", err);
+    }
+    window.location.href = url;
+  }
+
+  // Pix: envia nome + mensagem por e-mail. Cartão: registra e segue para o Stripe.
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!gift) return;
@@ -694,15 +719,15 @@ function setupGiftsPix() {
     const isCard = gift.mode === "card";
 
     if (data.get("website")) return; // robô
+    if (isCard) return payWithCard(nome, mensagem); // nome e mensagem são opcionais
     if (!nome && !mensagem) {
-      if (isCard) { window.location.href = gift.cardUrl; return; } // mensagem é opcional
       feedback.textContent = t("gifts.msg.empty");
       return;
     }
 
     const payload = {
       tipo: "presente",
-      forma: isCard ? "Cartão" : "Pix",
+      forma: "Pix",
       presente: gift.name,
       valor: gift.amount,
       nome,
@@ -712,12 +737,10 @@ function setupGiftsPix() {
     form.querySelectorAll("button").forEach((b) => (b.disabled = true));
     try {
       await notifyByEmail(payload);
-      if (isCard) { window.location.href = gift.cardUrl; return; }
       feedback.textContent = t("gifts.msg.sent");
       form.querySelectorAll("input, textarea").forEach((el) => (el.disabled = true));
     } catch (err) {
       console.error("Gift message error:", err);
-      if (isCard) { window.location.href = gift.cardUrl; return; } // não trava o pagamento
       feedback.textContent = t("gifts.msg.error");
       form.querySelectorAll("button").forEach((b) => (b.disabled = false));
     }

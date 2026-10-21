@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, writeBatch, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 import { firebaseConfig, RECAPTCHA_SITE_KEY } from "./firebase-config.js";
@@ -29,6 +29,9 @@ const RESPOSTAS = "respostas";
 const respostasCollection = collection(db, RESPOSTAS);
 // Lista de convidados (gestão, só admin)
 const CONVIDADOS = "convidados";
+// Presentes no cartão: o site cria com status "aguardando"; o verificador
+// (verificador/index.js, GitHub Actions) muda para "pago" (Stripe) ou "nao_pago" (prazo)
+const PRESENTES = "presentes";
 
 /**
  * Database Service for RSVP
@@ -51,6 +54,30 @@ export const dbService = {
     };
     await setDoc(doc(db, RESPOSTAS, emailId), data);
     return { success: true, id: emailId };
+  },
+
+  // Presentes: registra a intenção de pagamento antes de ir para o Stripe.
+  // O id volta para o Stripe como client_reference_id e liga o pagamento a este registro.
+  async registerGift({ presente, valorSugerido = 0, nome = "", mensagem = "", linkPagamento, lang = "pt" }) {
+    const ref = await addDoc(collection(db, PRESENTES), {
+      presente: String(presente).trim(),
+      valorSugerido: Number(valorSugerido) || 0,
+      nome: String(nome).trim(),
+      mensagem: String(mensagem).trim(),
+      linkPagamento: String(linkPagamento),
+      lang,
+      status: "aguardando",
+      criadoEm: serverTimestamp(),
+    });
+    return ref.id;
+  },
+
+  // Admin: escuta os presentes em tempo real (mais recentes primeiro)
+  subscribeToGifts(callback, onError) {
+    const q = query(collection(db, PRESENTES), orderBy("criadoEm", "desc"));
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    }, onError);
   },
 
   // Admin: escuta as respostas em tempo real (mais recentes primeiro)

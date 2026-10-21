@@ -27,8 +27,15 @@ Site do casamento de Bruno & Elizabete (01/11/2026, Fazenda Fagundes — Mairipo
 │   └── gerar-pdf.html    # Gera o PDF do convite (html2canvas + jsPDF)
 ├── server/
 │   ├── firebase-config.js  # Configuração pública do Firebase e chave do App Check
-│   ├── firebase-db.js      # Acesso ao Firestore (RSVP, convidados) e login Google
+│   ├── firebase-db.js      # Acesso ao Firestore (RSVP, convidados, presentes) e login Google
 │   └── firestore.rules     # Regras de segurança do Firestore
+├── verificador/          # Confirmação dos presentes pagos no Stripe (roda no GitHub Actions)
+│   ├── index.js          # Busca pagamentos no Stripe, atualiza o Firestore e envia e-mails (Resend)
+│   ├── email.js          # Texto dos e-mails
+│   └── test/             # Testes (npm test)
+├── .github/workflows/
+│   └── verificar-presentes.yml  # Roda o verificador a cada ~5 minutos
+├── firebase.json         # Configuração do Firebase CLI (deploy das regras)
 ├── CNAME                 # Domínio personalizado do GitHub Pages
 └── .vscode/launch.json   # Abre o Chrome em http://localhost:8080 para depuração
 ```
@@ -59,11 +66,21 @@ Os textos traduzíveis ficam no objeto `I18N` (chaves `pt` e `en`) do mesmo arqu
 
 - Login com conta Google. Só os e-mails listados na função `isAdmin()` de [`server/firestore.rules`](server/firestore.rules) conseguem ler e editar os dados.
 - Mostra as respostas do RSVP em tempo real e permite editar/remover.
+- Aba **Presentes**: presentes no cartão com status **pago**, **aguardando** ou **não pago** (somente leitura, o status vem do Stripe).
 - Gerencia a coleção `convidados`, incluindo **importação de CSV** exportado da aba "Lista de Convidados" do Google Sheets (a importação faz merge, então importar o mesmo arquivo de novo não duplica registros).
 
 ### Presentes (`presentes.html`)
 
 Cada presente tem um botão **Pix** (gera QR Code e código copia e cola com o valor do presente) e um botão **Cartão** (link de pagamento do Stripe). Nos dois casos o convidado pode deixar uma mensagem para os noivos.
+
+**Confirmação dos pagamentos no cartão** ([`verificador/`](verificador/index.js), rodando no GitHub Actions, sem custo):
+
+1. Ao clicar em "Continuar para o pagamento", o site grava `presentes/{id}` no Firestore com status `aguardando` e abre o link do Stripe com `?client_reference_id={id}`.
+2. A cada ~5 minutos, o workflow [`verificar-presentes.yml`](.github/workflows/verificar-presentes.yml) consulta no Stripe os pagamentos concluídos desde a última execução, marca o presente correspondente como `pago` e envia um e-mail.
+3. O que está `aguardando` há mais de 30 minutos vira `nao_pago` e gera um e-mail. Se o pagamento chegar depois, vira `pago` e chega outro e-mail.
+4. Pagamentos feitos direto no link do Stripe, sem passar pelo site, também geram registro e e-mail ("sem mensagem no site").
+
+Os e-mails vão **só para os noivos** (lista `NOTIFICAR` em `verificador/index.js`), nunca para o convidado. O prazo fica em `PRAZO_MINUTOS`. O agendamento do GitHub não é pontual: o e-mail pode chegar de 5 a 15 minutos depois do pagamento. O Pix continua sem confirmação automática: a mensagem é enviada por e-mail via Web3Forms e o pagamento é conferido no app do banco.
 
 Para adicionar ou alterar um presente, edite o `<article>` correspondente em `presentes.html`: `data-title` (nome sem acentos, usado no Pix), `data-amount` (valor em reais) e `data-link` (link do Stripe).
 
@@ -126,4 +143,37 @@ Ao alterar `styles.css` ou `script.js`, atualize o parâmetro de versão (`?v=..
 
 ### Regras do Firestore
 
-As regras em `server/firestore.rules` **não** são publicadas pelo GitHub Pages. Depois de alterá-las (por exemplo, para adicionar um novo admin), copie o conteúdo para **Firebase Console → Firestore Database → Regras** e clique em **Publicar**.
+As regras em `server/firestore.rules` **não** são publicadas pelo GitHub Pages. Depois de alterá-las (por exemplo, para adicionar um novo admin), publique com o Firebase CLI:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+Ou copie o conteúdo para **Firebase Console → Firestore Database → Regras** e clique em **Publicar**.
+
+### Verificador de presentes (GitHub Actions)
+
+O workflow roda sozinho depois do push, mas precisa de três **secrets** em **GitHub → Settings → Secrets and variables → Actions → New repository secret** (ficam criptografados e não aparecem para ninguém, mesmo com o repositório público):
+
+| Secret | Onde conseguir |
+| --- | --- |
+| `STRIPE_API_KEY` | Stripe → Desenvolvedores → Chaves de API → **Criar chave restrita**, com permissão só de **leitura** em **Events** (`rk_live_...`) |
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase Console → Configurações do projeto → Contas de serviço → **Gerar nova chave privada**. Cole o conteúdo inteiro do arquivo JSON e apague o arquivo do computador depois |
+| `RESEND_API_KEY` | [resend.com](https://resend.com) → crie a conta com o e-mail que vai receber os avisos (o remetente `onboarding@resend.dev` só entrega para o dono da conta) → API Keys |
+
+Depois de cadastrar, rode uma vez na hora em **GitHub → Actions → Verificar presentes → Run workflow** e confira o log ("Resumo: ..."). Se uma execução falhar, o GitHub avisa por e-mail.
+
+Tudo fica no plano gratuito: o GitHub Actions não cobra para repositórios públicos, o Firestore continua no plano Spark e o Resend tem 3 mil e-mails grátis por mês. Observações:
+
+- O GitHub **desativa agendamentos depois de 60 dias sem commits** no repositório. Se isso acontecer, reative em Actions → Verificar presentes → Enable workflow.
+- Nunca coloque chaves no código: o repositório é público.
+
+Testes do verificador (Firestore, Stripe e e-mail simulados):
+
+```bash
+npm --prefix verificador install
+```
+
+```bash
+npm --prefix verificador test
+```

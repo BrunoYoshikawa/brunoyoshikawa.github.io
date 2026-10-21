@@ -39,6 +39,33 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Presentes no cartão: o site só cria, sempre como "aguardando".
+    // "pago" / "nao_pago" são gravados pelo verificador (verificador/index.js, Admin SDK ignora as regras).
+    match /presentes/{id} {
+      allow create: if request.resource.data.keys().hasAll(
+                         ['presente', 'valorSugerido', 'nome', 'mensagem', 'linkPagamento', 'lang', 'status', 'criadoEm'])
+                    && request.resource.data.keys().hasOnly(
+                         ['presente', 'valorSugerido', 'nome', 'mensagem', 'linkPagamento', 'lang', 'status', 'criadoEm'])
+                    && request.resource.data.presente is string
+                    && request.resource.data.presente.size() > 0
+                    && request.resource.data.presente.size() <= 120
+                    && request.resource.data.valorSugerido is number
+                    && request.resource.data.valorSugerido >= 0
+                    && request.resource.data.valorSugerido <= 100000
+                    && request.resource.data.nome is string
+                    && request.resource.data.nome.size() <= 120
+                    && request.resource.data.mensagem is string
+                    && request.resource.data.mensagem.size() <= 1000
+                    && request.resource.data.linkPagamento is string
+                    && request.resource.data.linkPagamento.size() <= 200
+                    && request.resource.data.linkPagamento.matches('^https://(buy|donate)[.]stripe[.]com/.*')
+                    && request.resource.data.lang in ['pt', 'en']
+                    && request.resource.data.status == 'aguardando'
+                    && request.resource.data.criadoEm == request.time;
+
+      allow read, update, delete: if isAdmin();
+    }
+
     // Lista de convidados: só admins
     match /convidados/{id} {
       allow read, write: if isAdmin();

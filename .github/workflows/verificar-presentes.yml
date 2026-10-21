@@ -1,0 +1,40 @@
+# Confirma no Stripe os presentes pagos no cartão e avisa por e-mail (verificador/index.js).
+# Secrets necessários (Settings → Secrets and variables → Actions):
+#   STRIPE_API_KEY           chave restrita do Stripe (rk_live_...), só leitura de Events
+#   FIREBASE_SERVICE_ACCOUNT JSON da conta de serviço do Firebase
+#   RESEND_API_KEY           API key do Resend
+name: Verificar presentes
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # o GitHub não garante o horário: pode atrasar alguns minutos
+  workflow_dispatch: # botão "Run workflow" para rodar na hora
+
+permissions:
+  contents: read
+
+# Nunca roda duas verificações ao mesmo tempo
+concurrency:
+  group: verificar-presentes
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: verificador
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: verificador/package-lock.json
+      - run: npm ci --omit=dev
+      - run: node index.js
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}

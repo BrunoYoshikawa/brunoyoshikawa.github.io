@@ -1,0 +1,16 @@
+{
+  "name": "verificador-presentes",
+  "private": true,
+  "description": "Confirma no Stripe os presentes pagos no cartão e avisa por e-mail (Resend). Roda no GitHub Actions a cada 5 min.",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}

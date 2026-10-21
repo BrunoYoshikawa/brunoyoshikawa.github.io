@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Gestão de RSVP</title>
-  <link rel="stylesheet" href="styles.css?v=20261015a">
+  <link rel="stylesheet" href="styles.css?v=20261021a">
   <style>
     :root {
       --ok: #2e7d32;    --ok-bg: #e7f4e8;
@@ -112,6 +112,12 @@
     .empty { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
     .hidden { display: none !important; }
 
+    /* Aba Presentes (somente leitura: o status vem do Stripe) */
+    .badge { display: inline-block; border: 1px solid; border-radius: 99px; padding: 4px 12px; font-weight: 600; font-size: 13px; white-space: nowrap; }
+    .gift-msg { min-width: 220px; white-space: pre-line; }
+    #giftsPanel .kpi { cursor: default; }
+    #giftsPanel .kpi:hover { transform: none; }
+
   </style>
 </head>
 <body>
@@ -131,15 +137,16 @@
         <button class="active" data-ev="casamento">💍 Casamento</button>
         <button data-ev="prewedding">🥂 Pre Wedding</button>
       </div>
-      <div class="kpis" id="kpis"></div>
-      <div class="progress" id="progress"></div>
+      <div class="kpis rsvp-only" id="kpis"></div>
+      <div class="progress rsvp-only" id="progress"></div>
 
       <div class="tabs">
         <button class="tab active" data-tab="convidados">Convidados <span class="count" id="countGuests">0</span></button>
         <button class="tab" data-tab="respostas">Respostas do site <span class="count" id="countResponses">0</span></button>
+        <button class="tab" data-tab="presentes">Presentes <span class="count" id="countGifts">0</span></button>
       </div>
 
-      <div class="filters">
+      <div class="filters rsvp-only">
         <input type="search" id="fSearch" placeholder="🔍 Buscar nome, telefone...">
         <div class="chip-group" id="fStatus">
           <button class="chip active" data-status="">Todos</button>
@@ -159,12 +166,24 @@
         </label>
       </div>
 
-      <div class="table-wrapper">
+      <div class="table-wrapper rsvp-only">
         <table>
           <thead id="tHead"></thead>
           <tbody id="tBody"></tbody>
         </table>
         <div id="emptyMsg" class="empty hidden"></div>
+      </div>
+
+      <!-- Presentes no cartão: status atualizado pelo verificador (verificador/index.js, GitHub Actions) -->
+      <div id="giftsPanel" class="hidden">
+        <div class="kpis" id="giftKpis"></div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Status</th><th>Data</th><th>Presente</th><th>Valor</th><th>Nome</th><th>Mensagem</th><th>Pagador (Stripe)</th></tr></thead>
+            <tbody id="giftBody"></tbody>
+          </table>
+          <div id="giftEmpty" class="empty hidden">Nenhum presente no cartão ainda.</div>
+        </div>
       </div>
     </div>
 
@@ -240,7 +259,7 @@
     const state = {
       tab: "convidados",
       event: "casamento",
-      data: { convidados: [], respostas: [] },
+      data: { convidados: [], respostas: [], presentes: [] },
       sort: { convidados: { key: "nome", dir: 1 }, respostas: { key: "timestamp", dir: -1 } },
       filters: { search: "", status: "", noivo: "", tipo: "", categoria: "" },
       // Edições ainda não salvas: { [tab]: { [id]: { campo: valor } } }
@@ -459,12 +478,54 @@
       });
     }
 
+    // ====== Presentes (somente leitura) ======
+    const GIFT_STATUS = {
+      pago:       { label: "✓ Pago",       cls: "status-confirmado" },
+      aguardando: { label: "⏳ Aguardando", cls: "status-aguardando" },
+      nao_pago:   { label: "✕ Não pago",   cls: "status-nao_vai" },
+    };
+    const brl = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const fmtTs = (ts) => (ts?.toDate ? ts.toDate().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "");
+
+    function renderGifts() {
+      const rows = state.data.presentes;
+      const by = (status) => rows.filter((r) => r.status === status);
+      const pagos = by("pago");
+      $("giftKpis").replaceChildren(
+        kpi("kpi-ok", "✓ Pagos", pagos.length, `${brl(pagos.reduce((n, r) => n + (Number(r.valorPago) || 0), 0))} recebidos`, "-"),
+        kpi("kpi-wait", "⏳ Aguardando pagamento", by("aguardando").length, "confirmação do Stripe em até 30 min", "-"),
+        kpi("kpi-no", "✕ Não pagos", by("nao_pago").length, "abriram o pagamento e não concluíram", "-"),
+      );
+      $("giftBody").replaceChildren(...rows.map((r) => {
+        const st = GIFT_STATUS[r.status] || GIFT_STATUS.aguardando;
+        const valor = r.status === "pago" ? brl(r.valorPago) : brl(r.valorSugerido);
+        return el("tr", {},
+          el("td", {}, el("span", { class: `badge ${st.cls}`, textContent: st.label })),
+          el("td", { class: "date-cell", textContent: fmtTs(r.pagoEm || r.criadoEm) }),
+          el("td", { textContent: r.semRegistro ? "(pagou direto no Stripe)" : r.presente }),
+          el("td", { class: "date-cell", textContent: valor, title: r.status === "pago" ? `Sugerido: ${brl(r.valorSugerido)}` : "Valor sugerido" }),
+          el("td", { textContent: r.nome || "—" }),
+          el("td", { class: "gift-msg", textContent: r.mensagem || "—" }),
+          el("td", { textContent: [r.pagador, r.emailPagador].filter(Boolean).join(" · ") || "—" }));
+      }));
+      $("giftEmpty").classList.toggle("hidden", rows.length > 0);
+    }
+
     function render() {
       // No modo Pre Wedding, conta só os convidados do pre wedding
       $("countGuests").textContent = state.event === "prewedding"
         ? state.data.convidados.filter((r) => r.preWedding).length
         : state.data.convidados.length;
       $("countResponses").textContent = state.data.respostas.length;
+      $("countGifts").textContent = state.data.presentes.length;
+      const gifts = state.tab === "presentes";
+      document.querySelectorAll(".rsvp-only").forEach((n) => n.classList.toggle("hidden", gifts));
+      $("giftsPanel").classList.toggle("hidden", !gifts);
+      if (gifts) {
+        $("fEvento").classList.add("hidden");
+        renderGifts();
+        return;
+      }
       document.querySelectorAll(".guest-only").forEach((n) => n.classList.toggle("hidden", state.tab !== "convidados"));
       // O filtro "+2 meses" só vale para o casamento
       document.querySelector('.chip[data-status=antigo]').classList.toggle("hidden", state.tab !== "convidados" || state.event !== "casamento");
@@ -838,6 +899,11 @@
           log(`Respostas sincronizadas: ${data.length}`, "success");
           render();
         }, onError("respostas")),
+        dbService.subscribeToGifts((data) => {
+          state.data.presentes = data;
+          log(`Presentes sincronizados: ${data.length}`, "success");
+          render();
+        }, onError("presentes")),
       ];
     }
 
