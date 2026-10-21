@@ -377,12 +377,14 @@ input, button, textarea, select {
 }
 .dress-card {
   width: 100%;
-  min-height: 160px; /* menor altura */
-  order: 2;          /* no mobile, imagem abaixo do texto */
+  max-width: 200px;
+  min-height: 0;        /* não herda a altura mínima do mapa (.map-card) */
+  justify-self: center; /* no mobile, centralizada abaixo do texto */
+  order: 2;
 }
 .dress-card .dress-image {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 5; /* corta parte da margem branca de cima e de baixo da imagem */
   object-fit: cover;
   display: block;
 }
@@ -699,11 +701,14 @@ input, button, textarea, select {
   .form-row {
     grid-template-columns: 1fr 1fr;
   }
-  /* Dress: duas colunas no desktop */
+  /* Dress: imagem ao lado do texto, alinhada pelo topo */
   .dress-grid {
-    grid-template-columns: 3fr 1fr; /* imagem ocupa 1/4 da largura */
+    grid-template-columns: minmax(0, 72ch) 200px; /* 72ch = largura máxima do texto */
+    justify-content: start;
     align-items: start;
+    gap: 48px;
   }
+  .dress-card { justify-self: start; }
   .dress-text { order: 1; }
   .dress-card { order: 2; }
 }
