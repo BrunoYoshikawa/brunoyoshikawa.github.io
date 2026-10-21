@@ -1,0 +1,12 @@
+{
+  "name": "Bruno e Elizabete - Nosso Casamento",
+  "short_name": "Bruno & Elizabete",
+  "icons": [
+    { "src": "./assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#2f6fa1",
+  "background_color": "#fbf6e9",
+  "display": "browser",
+  "start_url": "./home.html"
+}

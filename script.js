@@ -68,6 +68,7 @@ const HOTELS = [
 const I18N = {
   pt: {
     titleBase: "Nosso Casamento",
+    titleNames: "Bruno e Elizabete",
     "nav.casamento": "O Casamento",
     "nav.local": "Local",
     "nav.hoteis": "Onde ficar",
@@ -177,6 +178,7 @@ const I18N = {
   },
   en: {
     titleBase: "Our Wedding",
+    titleNames: "Bruno & Elizabete",
     "nav.casamento": "The Wedding",
     "nav.local": "Venue",
     "nav.hoteis": "Where to stay",
@@ -424,7 +426,8 @@ function populateContent() {
 
   // Atualiza título
   const dict = I18N[currentLang] || I18N.pt;
-  document.title = `${dict.titleBase} – ${coupleNames}`;
+  // Aba do navegador: "Bruno e Elizabete - Nosso Casamento"
+  document.title = `${dict.titleNames} - ${dict.titleBase}`;
 
   // Dia da semana (se existir no template)
   const weekdayEl = select(".wedding-weekday");
