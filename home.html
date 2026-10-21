@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <!-- Ativa as animações (styles.css só esconde os elementos quando há JS) -->
     <script>document.documentElement.classList.add("js")</script>
-    <link rel="stylesheet" href="./styles.css?v=20261021b" />
+    <link rel="stylesheet" href="./styles.css?v=20261021h" />
   </head>
   <body>
     <header class="site-header" id="topo">
@@ -27,25 +27,19 @@
           <ul class="nav-list">
             <li><a href="#casamento" data-i18n="nav.casamento">O Casamento</a></li>
             <li><a href="#local" data-i18n="nav.local">Local</a></li>
-           <!-- <li><a href="#itinerario" data-i18n="nav.itinerario">Itinerário</a></li> -->
+            <li><a href="#hoteis" data-i18n="nav.hoteis">Onde ficar</a></li>
+            <li><a href="#programacao" data-i18n="nav.programacao">Programação</a></li>
             <li><a href="#rsvp" data-i18n="nav.confirmar">Confirmar presença</a></li>
             <li><a href="./presentes.html" data-i18n="nav.presentes">Presentes</a></li>
             <li class="nav-lang">
-              <div class="lang-control" aria-label="Selecionar idioma">
-                <button class="lang-button" aria-haspopup="listbox" aria-expanded="false" id="lang-button">
-                  <span id="current-flag" class="flag flag-pt" aria-hidden="true"></span>
-                  <span class="sr-only">PT</span>
+              <div class="lang-switch" role="group" aria-label="Idioma / Language" data-active="pt">
+                <span class="lang-thumb" aria-hidden="true"></span>
+                <button type="button" class="lang-opt" data-lang="pt" aria-pressed="true" title="Português">
+                  <span class="flag flag-pt" aria-hidden="true"></span><span class="lang-text">PT</span>
                 </button>
-                <ul class="lang-menu" role="listbox" aria-labelledby="lang-button">
-                  <li role="option" data-lang="pt" aria-selected="true">
-                    <span class="flag flag-pt" aria-hidden="true"></span>
-                    <span class="lang-text">PT</span>
-                  </li>
-                  <li role="option" data-lang="en" aria-selected="false">
-                    <span class="flag flag-en" aria-hidden="true"></span>
-                    <span class="lang-text">EN</span>
-                  </li>
-                </ul>
+                <button type="button" class="lang-opt" data-lang="en" aria-pressed="false" title="English">
+                  <span class="flag flag-en" aria-hidden="true"></span><span class="lang-text">EN</span>
+                </button>
               </div>
             </li>
           </ul>
@@ -111,78 +105,92 @@
 
       <!-- Local -->
       <section id="local" class="section" aria-labelledby="local-heading">
-        <div class="container grid-2">
-          <div>
-            <h2 id="local-heading" class="section-title" data-i18n="section.local">Local</h2>
-            <p id="venue-name" class="venue-name">Nome do Espaço</p>
-            <p id="venue-address" class="venue-address">Endereço completo do local</p>
-            <div class="info-list">
-
-
-              <div class="info-item">
-                <h3 data-i18n="local.hoteis.title">Hotéis próximos</h3>
-                <ul class="hotel-list">
-                  <li><a href="https://www.google.com/maps/search/?api=1&query=Graal%20in%20Mairipor%C3%A3" target="_blank" rel="noopener">Graal in Mairiporã</a></li>
-                  <li><a href="https://www.google.com/maps/search/?api=1&query=Hotel%20Ref%C3%BAgio%20Vista%20Serrana" target="_blank" rel="noopener">Hotel Refúgio Vista Serrana</a></li>
-                  <li><a href="https://www.google.com/maps/search/?api=1&query=Spinn%20Mairipor%C3%A3%20by%20Easy%20Hot%C3%A9is" target="_blank" rel="noopener">Spinn Mairiporã by Easy Hotéis</a></li>
-                </ul>
+        <div class="container">
+          <h2 id="local-heading" class="section-title" data-i18n="section.local">Local</h2>
+          <div class="venue-layout">
+            <div class="venue-card">
+              <p class="venue-eyebrow" data-i18n="local.eyebrow">Cerimônia e festa</p>
+              <h3 id="venue-name" class="venue-name">Nome do Espaço</h3>
+              <ul class="venue-facts">
+                <li><svg class="venue-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="venue-address">Endereço completo do local</span></li>
+                <li><svg class="venue-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span id="venue-when">Data e horário</span></li>
+                <li><svg class="venue-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"/><path d="M5 19l7-7"/></svg><span data-i18n="local.arLivre">Cerimônia ao ar livre, na grama</span></li>
+              </ul>
+              <div class="venue-actions">
+                <a id="google-maps-link" class="btn btn-primary" target="_blank" rel="noopener" href="#"><svg class="venue-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span data-i18n="local.mapa.abrir">Abrir no Google Maps</span></a>
+                <a id="waze-link" class="btn btn-ghost" target="_blank" rel="noopener" href="#"><svg class="venue-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"/></svg><span data-i18n="local.waze">Abrir no Waze</span></a>
               </div>
             </div>
-            <div class="map-actions">
-              <a id="google-maps-link" class="btn btn-ghost" target="_blank" rel="noopener" href="#" data-i18n="local.mapa.abrir">Abrir no Google Maps</a>
+            <div class="map-card">
+              <iframe
+                id="google-maps-iframe"
+                title="Mapa do local"
+                class="map"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                src="">
+              </iframe>
             </div>
           </div>
-          <div class="map-card">
-            <iframe
-              id="google-maps-iframe"
-              title="Mapa do local"
-              class="map"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              src="">
-            </iframe>
+          <!-- Fotos do site oficial da fazenda (fazendafagundes.com.br) -->
+          <div class="venue-photos">
+            <img src="./assets/fazenda/vista-aerea.jpg" alt="Vista aérea da Fazenda Fagundes, com gramado, lago e a serra ao fundo" loading="lazy" width="1000" height="749" />
+            <img src="./assets/fazenda/lago.jpg" alt="Lago e caminho de pedra cercados de mata na Fazenda Fagundes" loading="lazy" width="1000" height="750" />
+            <p class="venue-photos-credit" data-i18n="local.fotos.credito">Fotos: Fazenda Fagundes</p>
           </div>
         </div>
       </section>
 
-      <!-- Itinerário -->
-      <section id="itinerario" class="section section-muted" aria-labelledby="itinerario-heading" hidden>
+      <!-- Onde ficar (cards montados por renderHotels em script.js, a partir de HOTELS) -->
+      <section id="hoteis" class="section section-muted" aria-labelledby="hoteis-heading">
         <div class="container">
-          <h2 id="itinerario-heading" class="section-title" data-i18n="section.itinerario">Itinerário</h2>
-          <ol class="timeline" aria-label="Cronograma do evento">
+          <h2 id="hoteis-heading" class="section-title hotels-title" data-i18n="section.hoteis">Onde ficar</h2>
+          <p class="section-intro hotels-intro" data-i18n="hoteis.intro">
+            Selecionamos alguns hotéis próximos da fazenda para a sua conveniência.
+          </p>
+          <div id="hotel-grid" class="hotel-grid"></div>
+          <p class="hotels-note" data-i18n="hoteis.nota">Precisa de ajuda com hospedagem ou transporte? Fale com a gente!</p>
+        </div>
+      </section>
+
+      <!-- Programação -->
+      <section id="programacao" class="section" aria-labelledby="programacao-heading">
+        <div class="container">
+          <h2 id="programacao-heading" class="section-title programacao-title" data-i18n="section.programacao">Programação</h2>
+          <ol class="timeline" aria-label="Programação do casamento">
             <li class="timeline-item">
-              <div class="time">16:30</div>
-              <div class="content">
-                <h3 data-i18n="itinerario.1.title">Chegada dos convidados</h3>
-                <p data-i18n="itinerario.1.text">Recepção e acomodação dos convidados.</p>
+              <span class="timeline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3h8l-.5 5a3.5 3.5 0 01-7 0z"/><path d="M12 11.5V20M8.5 20h7"/></svg></span>
+              <div class="timeline-card">
+                <h3 data-i18n="programacao.1">Chegada e coquetel de recepção dos convidados</h3>
+                <time class="time">15:30</time>
               </div>
             </li>
             <li class="timeline-item">
-              <div class="time">17:00</div>
-              <div class="content">
-                <h3 data-i18n="itinerario.2.title">Cerimônia</h3>
-                <p data-i18n="itinerario.2.text">Início da cerimônia no espaço principal.</p>
+              <span class="timeline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v4M10.5 4.5h3"/><path d="M5 21V12l7-5 7 5v9z"/><path d="M10 21v-4a2 2 0 014 0v4"/><path d="M3 21h18"/></svg></span>
+              <div class="timeline-card">
+                <h3 data-i18n="programacao.2">Início da cerimônia</h3>
+                <time class="time">16:00</time>
               </div>
             </li>
             <li class="timeline-item">
-              <div class="time">18:00</div>
-              <div class="content">
-                <h3 data-i18n="itinerario.3.title">Coquetel</h3>
-                <p data-i18n="itinerario.3.text">Brinde e fotos com os noivos.</p>
+              <span class="timeline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 004 0V3M7 11v10"/><path d="M17 21V3c-1.7 1-3 3.5-3 6.5V13h3"/></svg></span>
+              <div class="timeline-card">
+                <h3 data-i18n="programacao.3">Recepção e jantar</h3>
+                <time class="time">17:00</time>
               </div>
             </li>
             <li class="timeline-item">
-              <div class="time">19:30</div>
-              <div class="content">
-                <h3 data-i18n="itinerario.4.title">Jantar</h3>
-                <p data-i18n="itinerario.4.text">Serviço de jantar aos convidados.</p>
+              <span class="timeline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></span>
+              <div class="timeline-card">
+                <h3 data-i18n="programacao.4">Banda ao vivo</h3>
+                <time class="time">20:00</time>
               </div>
             </li>
             <li class="timeline-item">
-              <div class="time">21:00</div>
-              <div class="content">
-                <h3 data-i18n="itinerario.5.title">Festa</h3>
-                <p data-i18n="itinerario.5.text">Vamos celebrar juntos com música e dança!</p>
+              <span class="timeline-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg></span>
+              <div class="timeline-card">
+                <h3 data-i18n="programacao.5">After party</h3>
+                <time class="time">01:00</time>
               </div>
             </li>
           </ol>
@@ -190,7 +198,7 @@
       </section>
 
       <!-- RSVP -->
-      <section id="rsvp" class="section" aria-labelledby="rsvp-heading">
+      <section id="rsvp" class="section section-muted" aria-labelledby="rsvp-heading">
         <div class="container">
           <h2 id="rsvp-heading" class="section-title" data-i18n="section.rsvp">Confirmar presença</h2>
           <p class="section-intro" data-i18n="rsvp.intro">
@@ -239,7 +247,7 @@
       </div>
     </footer>
 
-    <script src="./script.js?v=20261021b"></script>
+    <script src="./script.js?v=20261021h"></script>
   </body>
   </html>
 

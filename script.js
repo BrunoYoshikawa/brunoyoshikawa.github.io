@@ -14,12 +14,64 @@ const WEDDING_CONFIG = {
   pixReceiverName: "Bruno Diego Yoshikawa",
   pixReceiverCity: "SAO PAULO",
 };
+// ====== Hotéis (seção "Onde ficar") ======
+// Campos opcionais: o que estiver vazio não aparece no card.
+//   photo: imagem em assets/hoteis/ (sem foto, mostra um fundo neutro)
+//   rating / ratingMax: nota (ex.: 4.4 de 5) + ratingSource (ex.: "Google")
+//   distanceKm / driveMin: distância e tempo de carro até a fazenda (Google Maps)
+//   english: true se a equipe fala inglês
+//   bookingUrl: link do Booking.com; siteUrl: site oficial do hotel.
+//   O botão usa bookingUrl, senão siteUrl, senão abre o Google Maps.
+// Notas e rotas do Google Maps conferidas em 21/10/2026.
+const HOTELS = [
+  {
+    name: "Hotel Spinn",
+    photo: "./assets/hoteis/spinn.jpg", // foto do site oficial do hotel
+    rating: 4.2,
+    ratingMax: 5,
+    ratingSource: "Google",
+    distanceKm: 4.4,
+    driveMin: 10,
+    english: false,
+    bookingUrl: "",
+    siteUrl: "https://www.hotelspinn.com.br/",
+    mapsQuery: "Hotel Spinn, Alameda Dona Sinharinha Passarella, 50, Mairiporã",
+  },
+  {
+    name: "Graal Inn Mairiporã",
+    photo: "./assets/hoteis/graal-inn.jpg", // foto do site oficial do hotel
+    rating: 4.4,
+    ratingMax: 5,
+    ratingSource: "Google",
+    distanceKm: 17.7,
+    driveMin: 23,
+    english: false,
+    bookingUrl: "",
+    siteUrl: "https://www.graalinnhoteis.com.br/hoteis/hotel-graal-inn-mairipora",
+    mapsQuery: "Graal Inn Mairiporã",
+  },
+  {
+    name: "ibis Guarulhos",
+    photo: "./assets/hoteis/ibis-guarulhos.jpg", // foto do site oficial do hotel
+    rating: 4.2,
+    ratingMax: 5,
+    ratingSource: "Google",
+    distanceKm: 27.1,
+    driveMin: 25,
+    english: false,
+    bookingUrl: "",
+    siteUrl: "https://all.accor.com/hotel/5021/index.pt-br.shtml",
+    mapsQuery: "ibis Guarulhos, R. Gen. Osório, 19, Guarulhos",
+  },
+];
+
 const I18N = {
   pt: {
     titleBase: "Nosso Casamento",
     "nav.casamento": "O Casamento",
     "nav.local": "Local",
-    "nav.itinerario": "Itinerário",
+    "nav.hoteis": "Onde ficar",
+    "nav.programacao": "Programação",
     "wedding-weekday": "Domingo",
     "nav.confirmar": "Confirmar presença",
     "nav.presentes": "Presentes",
@@ -28,7 +80,12 @@ const I18N = {
     "hero.verLocal": "Ver local",
     "section.sobre": "Sobre o casamento",
     "section.local": "Local",
-    "section.itinerario": "Itinerário",
+    "section.programacao": "Programação",
+    "programacao.1": "Chegada e coquetel de recepção dos convidados",
+    "programacao.2": "Início da cerimônia",
+    "programacao.3": "Recepção e jantar",
+    "programacao.4": "Banda ao vivo",
+    "programacao.5": "After party",
     "section.rsvp": "Confirmar presença",
     "section.traje": "Como devo me vestir?",
     "about.text": "Será uma celebração intimista e cheia de amor, com cerimônia seguida de recepção. Prepare-se para uma noite especial com família e amigos, boa música e momentos inesquecíveis.",
@@ -39,16 +96,20 @@ const I18N = {
     "local.estacionamento.text": "Informe se há valet, estacionamento próprio ou opções na rua.",
     "local.hoteis.title": "Hotéis próximos",
     "local.mapa.abrir": "Abrir no Google Maps",
-    "itinerario.1.title": "Chegada dos convidados",
-    "itinerario.1.text": "Recepção e acomodação dos convidados.",
-    "itinerario.2.title": "Cerimônia",
-    "itinerario.2.text": "Início da cerimônia no espaço principal.",
-    "itinerario.3.title": "Coquetel",
-    "itinerario.3.text": "Brinde e fotos com os noivos.",
-    "itinerario.4.title": "Jantar",
-    "itinerario.4.text": "Serviço de jantar aos convidados.",
-    "itinerario.5.title": "Festa",
-    "itinerario.5.text": "Vamos celebrar juntos com música e dança!",
+    "local.fotos.credito": "Fotos: Fazenda Fagundes",
+    "local.eyebrow": "Cerimônia e festa",
+    "local.arLivre": "Cerimônia ao ar livre, na grama",
+    "local.waze": "Abrir no Waze",
+    "lightbox.fechar": "Fechar",
+    "section.hoteis": "Onde ficar",
+    "hoteis.intro": "Selecionamos alguns hotéis próximos da fazenda para a sua conveniência.",
+    "hoteis.km": "km do local",
+    "hoteis.min": "min de carro",
+    "hoteis.ingles": "Equipe fala inglês",
+    "hoteis.reservar": "Reservar no Booking.com",
+    "hoteis.site": "Reservar no site do hotel",
+    "hoteis.mapa": "Ver no Google Maps",
+    "hoteis.nota": "Precisa de ajuda com hospedagem ou transporte? Fale com a gente!",
     "rsvp.intro": "Por favor, confirme sua presença para nos ajudar na organização. Obrigado!",
     "presentes.title": "Lista de presentes",
     "presentes.intro": "Se desejar nos presentear, você pode escolher uma das opções abaixo. Obrigado pelo carinho!",
@@ -118,7 +179,8 @@ const I18N = {
     titleBase: "Our Wedding",
     "nav.casamento": "The Wedding",
     "nav.local": "Venue",
-    "nav.itinerario": "Itinerary",
+    "nav.hoteis": "Where to stay",
+    "nav.programacao": "Schedule",
     "wedding-weekday": "Sunday",
     "nav.confirmar": "RSVP",
     "nav.presentes": "Gifts",
@@ -127,7 +189,12 @@ const I18N = {
     "hero.verLocal": "See venue",
     "section.sobre": "About the wedding",
     "section.local": "Venue",
-    "section.itinerario": "Itinerary",
+    "section.programacao": "Schedule",
+    "programacao.1": "Guest arrival and welcome cocktail",
+    "programacao.2": "Ceremony begins",
+    "programacao.3": "Reception and dinner",
+    "programacao.4": "Live band",
+    "programacao.5": "After party",
     "section.rsvp": "RSVP",
     "section.traje": "What should I wear?",
     "about.text": "It will be an intimate and loving celebration with a ceremony followed by a reception. Get ready for a special evening with family and friends, good music, and unforgettable moments.",
@@ -138,16 +205,20 @@ const I18N = {
     "local.estacionamento.text": "Let us know if there is valet, on-site parking, or street options.",
     "local.hoteis.title": "Nearby hotels",
     "local.mapa.abrir": "Open in Google Maps",
-    "itinerario.1.title": "Guests arrival",
-    "itinerario.1.text": "Reception and seating of guests.",
-    "itinerario.2.title": "Ceremony",
-    "itinerario.2.text": "Start of the ceremony in the main hall.",
-    "itinerario.3.title": "Cocktail",
-    "itinerario.3.text": "Toast and photos with the couple.",
-    "itinerario.4.title": "Dinner",
-    "itinerario.4.text": "Dinner service for guests.",
-    "itinerario.5.title": "Party",
-    "itinerario.5.text": "Let’s celebrate together with music and dancing!",
+    "local.fotos.credito": "Photos: Fazenda Fagundes",
+    "local.eyebrow": "Ceremony and reception",
+    "local.arLivre": "Outdoor ceremony, on the grass",
+    "local.waze": "Open in Waze",
+    "lightbox.fechar": "Close",
+    "section.hoteis": "Where to stay",
+    "hoteis.intro": "We picked a few hotels near the venue for your convenience.",
+    "hoteis.km": "km from the venue",
+    "hoteis.min": "min by car",
+    "hoteis.ingles": "English-speaking staff",
+    "hoteis.reservar": "Book on Booking.com",
+    "hoteis.site": "Book on the hotel's website",
+    "hoteis.mapa": "View on Google Maps",
+    "hoteis.nota": "Need help with accommodation or transportation? Let us know!",
     "rsvp.intro": "Please confirm your attendance to help us with organization. Thank you!",
     "presentes.title": "Gift list",
     "presentes.intro": "If you would like to give us a gift, you can choose one of the options below. Thank you for your love!",
@@ -226,6 +297,7 @@ function getLanguage() {
 function setLanguage(lang) {
   currentLang = lang === "en" ? "en" : "pt";
   localStorage.setItem("lang", currentLang);
+  renderHotels(); // números com vírgula/ponto conforme o idioma
   applyI18N();
   populateContent();
   const selectEl = select("#lang-switcher");
@@ -373,8 +445,20 @@ function populateContent() {
 
   const mapsA = select("#google-maps-link");
   const mapsIframe = select("#google-maps-iframe");
+  const wazeA = select("#waze-link");
   if (mapsA) mapsA.href = mapsLink;
-  if (mapsIframe) mapsIframe.src = embedSrc;
+  if (mapsIframe && mapsIframe.src !== embedSrc) mapsIframe.src = embedSrc; // não recarrega o mapa ao trocar de idioma
+  if (wazeA) wazeA.href = `https://waze.com/ul?q=${q}&navigate=yes`;
+
+  // Card do local: "Domingo, 01 de Novembro de 2026 • 15:30"
+  const whenEl = select("#venue-when");
+  if (whenEl) {
+    const w = getWeekdayFromPtDate(date);
+    const weekday = w && typeof w === "object" ? (currentLang === "en" ? w.en : w.pt) : "";
+    const d = currentLang === "en" ? toEnglishDate(date) : date;
+    const t = currentLang === "en" ? toEnglishTime(time) : (time || "").toString().replace(/[hH]/, ":");
+    whenEl.textContent = `${weekday ? weekday + ", " : ""}${d} • ${t}`;
+  }
 
   // Ano no rodapé
   const yearEl = select("#year");
@@ -479,9 +563,14 @@ const REVEAL_SELECTORS = [
   ".section-intro",
   ".about-text",
   ".dress-code",
-  "#local .grid-2 > *",
+  ".venue-card",
+  ".map-card",
+  ".venue-photos img",
   ".form",
   ".gift-card",
+  ".timeline-item",
+  ".hotel-card",
+  ".hotels-note",
 ];
 
 function setupReveal() {
@@ -505,9 +594,109 @@ function setupReveal() {
   roots.forEach((el) => io.observe(el));
 }
 
+// ====== Hotéis: monta os cards a partir de HOTELS ======
+// Os textos fixos usam data-i18n, então a troca de idioma funciona sem redesenhar.
+function renderHotels() {
+  const grid = select("#hotel-grid");
+  if (!grid) return;
+  const ICONS = {
+    star: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="currentColor"/>',
+    pin: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/>',
+    external: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>',
+  };
+  const icon = (name) => `<svg class="hotel-icon hotel-icon-${name}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const num = (n) => (currentLang === "pt" ? String(n).replace(".", ",") : String(n)); // 7.1 -> 7,1 em português
+
+  grid.innerHTML = HOTELS.map((h) => {
+    const facts = [
+      h.rating != null && `<li>${icon("star")}<span>${num(h.rating)}/${h.ratingMax || 5} <span class="muted">(${esc(h.ratingSource || "")})</span></span></li>`,
+      h.distanceKm != null && `<li>${icon("pin")}<span>~${num(h.distanceKm)} <span data-i18n="hoteis.km">km do local</span></span></li>`,
+      h.driveMin != null && `<li>${icon("clock")}<span>~${h.driveMin} <span data-i18n="hoteis.min">min de carro</span></span></li>`,
+      h.english && `<li>${icon("globe")}<span data-i18n="hoteis.ingles">Equipe fala inglês</span></li>`,
+    ].filter(Boolean).join("");
+    const href = h.bookingUrl || h.siteUrl || `https://www.google.com/maps/search/?api=1&query=${encodeRFC3986(h.mapsQuery || h.name)}`;
+    const label = h.bookingUrl ? "hoteis.reservar" : h.siteUrl ? "hoteis.site" : "hoteis.mapa";
+    return `
+      <article class="hotel-card">
+        <div class="hotel-photo">
+          ${h.photo ? `<img src="${esc(h.photo)}" alt="${esc(h.name)}" loading="lazy" />` : ""}
+        </div>
+        <div class="hotel-body">
+          <h3 class="hotel-name">${esc(h.name)}</h3>
+          ${facts ? `<ul class="hotel-facts">${facts}</ul>` : ""}
+          <a class="btn btn-primary hotel-btn" href="${esc(href)}" target="_blank" rel="noopener">
+            <span data-i18n="${label}"></span>${icon("external")}
+          </a>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+// ====== Imagem ampliada: clicar numa foto abre em tela cheia ======
+const LIGHTBOX_SELECTORS = [".venue-photos img", ".hotel-photo img", ".dress-image", ".gift-image"];
+
+function setupLightbox() {
+  const t = (key) => (I18N[currentLang] || I18N.pt)[key] || I18N.pt[key];
+  const box = document.createElement("div");
+  box.className = "lightbox";
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-modal", "true");
+  box.setAttribute("aria-hidden", "true");
+  box.innerHTML = '<button type="button" class="lightbox-close">✕</button><figure><img alt="" /><figcaption></figcaption></figure>';
+  document.body.appendChild(box);
+  const img = box.querySelector("img");
+  const caption = box.querySelector("figcaption");
+  const closeBtn = box.querySelector(".lightbox-close");
+  let lastFocus = null;
+
+  const open = (src, alt) => {
+    lastFocus = document.activeElement;
+    img.src = src;
+    img.alt = alt || "";
+    caption.textContent = alt || "";
+    closeBtn.setAttribute("aria-label", t("lightbox.fechar"));
+    box.classList.add("is-open");
+    box.setAttribute("aria-hidden", "false");
+    document.body.classList.add("lightbox-open");
+    closeBtn.focus();
+  };
+  const close = () => {
+    if (!box.classList.contains("is-open")) return;
+    box.classList.remove("is-open");
+    box.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("lightbox-open");
+    if (lastFocus) lastFocus.focus();
+  };
+
+  // Delegação: funciona também para os cards de hotel montados depois (renderHotels)
+  const selector = LIGHTBOX_SELECTORS.join(",");
+  const mark = () => document.querySelectorAll(selector).forEach((el) => {
+    el.classList.add("zoomable");
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "button");
+  });
+  mark();
+  new MutationObserver(mark).observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest(selector);
+    if (el && !box.contains(el)) open(el.currentSrc || el.src, el.alt);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+    const el = e.target.closest?.(selector);
+    if (el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(el.currentSrc || el.src, el.alt); }
+  });
+  box.addEventListener("click", (e) => { if (e.target !== img) close(); });
+}
+
 // ====== Init ======
 document.addEventListener("DOMContentLoaded", () => {
   currentLang = getLanguage();
+  renderHotels(); // antes do applyI18N, que preenche os textos dos cards
   applyI18N();
   populateContent();
   setupSmoothScroll();
@@ -516,58 +705,23 @@ document.addEventListener("DOMContentLoaded", () => {
   setupLanguageSwitcherUI();
   setupGiftsPix();
   setupReveal();
+  setupLightbox();
 });
 
-// ====== Language switcher UI (flags dropdown) ======
+// ====== Idioma: switch PT | EN com as duas bandeiras ======
 function setupLanguageSwitcherUI() {
-  const control = document.querySelector(".lang-control");
-  const button = document.querySelector(".lang-button");
-  const menu = document.querySelector(".lang-menu");
-  const currentFlag = document.querySelector("#current-flag");
-  if (!control || !button || !menu || !currentFlag) return;
-
+  const sw = document.querySelector(".lang-switch");
+  if (!sw) return;
   const render = () => {
-    const isPT = currentLang === "pt";
-    currentFlag.classList.toggle("flag-pt", isPT);
-    currentFlag.classList.toggle("flag-en", !isPT);
-    menu.querySelectorAll("[role='option']").forEach((opt) => {
-      const lang = opt.getAttribute("data-lang");
-      const selected = lang === currentLang;
-      opt.setAttribute("aria-selected", selected ? "true" : "false");
-    });
+    sw.dataset.active = currentLang;
+    sw.querySelectorAll(".lang-opt").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === currentLang)));
   };
-
-  const open = () => {
-    button.setAttribute("aria-expanded", "true");
-    control.classList.add("is-open");
-  };
-  const close = () => {
-    button.setAttribute("aria-expanded", "false");
-    control.classList.remove("is-open");
-  };
-  const toggle = () => {
-    const expanded = button.getAttribute("aria-expanded") === "true";
-    if (expanded) close(); else open();
-  };
-
-  button.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggle();
-  });
-  menu.addEventListener("click", (e) => {
-    const li = e.target.closest("[role='option']");
-    if (!li) return;
-    const lang = li.getAttribute("data-lang");
-    setLanguage(lang);
+  sw.addEventListener("click", (e) => {
+    const btn = e.target.closest(".lang-opt");
+    if (!btn || btn.dataset.lang === currentLang) return;
+    setLanguage(btn.dataset.lang);
     render();
-    close();
   });
-  document.addEventListener("click", (e) => {
-    if (!control.contains(e.target)) {
-      close();
-    }
-  });
-
   render();
 }
 

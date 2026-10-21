@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Ativa as animações (styles.css só esconde os elementos quando há JS) -->
     <script>document.documentElement.classList.add("js")</script>
-    <link rel="stylesheet" href="./styles.css?v=20261021b" />
+    <link rel="stylesheet" href="./styles.css?v=20261021h" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.0/qrcode.min.js"></script>
   </head>
   <body>
@@ -20,25 +20,19 @@
           <ul class="nav-list">
             <li><a href="./home.html#casamento" data-i18n="nav.casamento">O Casamento</a></li>
             <li><a href="./home.html#local" data-i18n="nav.local">Local</a></li>
-            <!-- <li><a href="./home.html#itinerario" data-i18n="nav.itinerario">Itinerário</a></li> -->
+            <li><a href="./home.html#hoteis" data-i18n="nav.hoteis">Onde ficar</a></li>
+            <li><a href="./home.html#programacao" data-i18n="nav.programacao">Programação</a></li>
             <li><a href="./home.html#rsvp" data-i18n="nav.confirmar">Confirmar presença</a></li>
             <li><a href="./presentes.html" data-i18n="nav.presentes">Presentes</a></li>
             <li class="nav-lang">
-              <div class="lang-control" aria-label="Selecionar idioma">
-                <button class="lang-button" aria-haspopup="listbox" aria-expanded="false" id="lang-button">
-                  <span id="current-flag" class="flag flag-pt" aria-hidden="true"></span>
-                  <span class="sr-only">PT</span>
+              <div class="lang-switch" role="group" aria-label="Idioma / Language" data-active="pt">
+                <span class="lang-thumb" aria-hidden="true"></span>
+                <button type="button" class="lang-opt" data-lang="pt" aria-pressed="true" title="Português">
+                  <span class="flag flag-pt" aria-hidden="true"></span><span class="lang-text">PT</span>
                 </button>
-                <ul class="lang-menu" role="listbox" aria-labelledby="lang-button">
-                  <li role="option" data-lang="pt" aria-selected="true">
-                    <span class="flag flag-pt" aria-hidden="true"></span>
-                    <span class="lang-text">PT</span>
-                  </li>
-                  <li role="option" data-lang="en" aria-selected="false">
-                    <span class="flag flag-en" aria-hidden="true"></span>
-                    <span class="lang-text">EN</span>
-                  </li>
-                </ul>
+                <button type="button" class="lang-opt" data-lang="en" aria-pressed="false" title="English">
+                  <span class="flag flag-en" aria-hidden="true"></span><span class="lang-text">EN</span>
+                </button>
               </div>
             </li>
           </ul>
@@ -191,7 +185,7 @@
       </div>
     </footer>
 
-    <script src="./script.js?v=20261021b"></script>
+    <script src="./script.js?v=20261021h"></script>
   </body>
   </html>
 
