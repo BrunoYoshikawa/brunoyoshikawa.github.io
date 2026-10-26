@@ -170,6 +170,7 @@
         <label class="btn btn-ghost guest-only" style="padding: 8px 14px; cursor: pointer;">
           Importar CSV <input type="file" id="csvFile" accept=".csv" hidden>
         </label>
+        <button id="exportCsv" class="btn btn-ghost" style="padding: 8px 14px;" title="Exporta a tabela como está na tela (com filtros e ordenação)">⬇ Exportar CSV</button>
       </div>
 
       <div class="table-wrapper rsvp-only">
@@ -183,6 +184,10 @@
       <!-- Presentes no cartão: status atualizado pelo verificador (verificador/index.js, GitHub Actions) -->
       <div id="giftsPanel" class="hidden">
         <div class="kpis" id="giftKpis"></div>
+        <div class="filters">
+          <span class="spacer"></span>
+          <button id="exportGiftsCsv" class="btn btn-ghost" style="padding: 8px 14px;">⬇ Exportar CSV</button>
+        </div>
         <div class="table-wrapper">
           <table>
             <thead><tr><th>Status</th><th>Data</th><th>Presente</th><th>Valor</th><th>Nome</th><th>Mensagem</th><th>Pagador (Stripe)</th></tr></thead>
@@ -517,6 +522,59 @@
       $("giftEmpty").classList.toggle("hidden", rows.length > 0);
     }
 
+    // ====== Exportação CSV (abre direto no Excel em português e no Google Sheets) ======
+    // Separador ";" + BOM UTF-8 para os acentos. Textos vindos do formulário público que
+    // começam com "=", "@", "+" ou "-" ganham um apóstrofo para não virarem fórmula na planilha.
+    function csvCell(value) {
+      let v = String(value ?? "");
+      if (/^[=@\t\r]/.test(v) || /^[+-][^\d\s(]/.test(v)) v = "'" + v;
+      return /[";\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+    }
+
+    function downloadCSV(filename, header, rows) {
+      const csv = [header, ...rows].map((r) => r.map(csvCell).join(";")).join("\r\n");
+      const url = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }));
+      const a = el("a", { href: url, download: filename });
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      flash(`✓ ${rows.length} linha(s) exportada(s)`);
+      log(`CSV exportado: ${filename} (${rows.length} linhas)`, "success");
+    }
+
+    const STATUS_TEXT = { confirmado: "Confirmado", aguardando: "Aguardando", nao_vai: "Não vai" };
+    function exportValue(col, r) {
+      const v = r[col.key];
+      if (col.type === "status") return col.requires && !r[col.requires] ? "N/A" : STATUS_TEXT[normStatus(v)];
+      if (col.type === "bool") return v ? "Sim" : "Não";
+      if (col.type === "confirmDate") return fmtDate(v);
+      if (col.type === "date") return v ? new Date(v).toLocaleString("pt-BR") : "";
+      return v ?? "";
+    }
+
+    // Convidados / Respostas: exporta o que está na tela (filtros + ordenação; alterações não salvas ficam de fora)
+    $("exportCsv").addEventListener("click", () => {
+      const tab = state.tab;
+      const cols = VIEWS[tab].columns;
+      const rows = sortRows(filteredRows(tab), tab);
+      const evento = tab === "convidados" && state.event === "prewedding" ? "-prewedding" : "";
+      downloadCSV(`${tab}${evento}-${today()}.csv`, cols.map((c) => c.label), rows.map((r) => cols.map((c) => exportValue(c, r))));
+    });
+
+    $("exportGiftsCsv").addEventListener("click", () => {
+      const label = { pago: "Pago", aguardando: "Aguardando", nao_pago: "Não pago" };
+      const num = (v) => (v == null || v === "" ? "" : Number(v).toFixed(2).replace(".", ","));
+      downloadCSV(`presentes-${today()}.csv`,
+        ["Status", "Data", "Presente", "Valor pago (R$)", "Valor sugerido (R$)", "Nome no site", "Mensagem", "Pagador (Stripe)", "E-mail do pagador"],
+        state.data.presentes.map((r) => [
+          label[r.status] || r.status, fmtTs(r.pagoEm || r.criadoEm),
+          r.semRegistro ? "(pagou direto no Stripe)" : r.presente,
+          r.status === "pago" ? num(r.valorPago) : "", num(r.valorSugerido),
+          r.nome, r.mensagem, r.pagador, r.emailPagador,
+        ]));
+    });
+
     function render() {
       // No modo Pre Wedding, conta só os convidados do pre wedding
       $("countGuests").textContent = state.event === "prewedding"
@@ -524,6 +582,10 @@
         : state.data.convidados.length;
       $("countResponses").textContent = state.data.respostas.length;
       $("countGifts").textContent = state.data.presentes.length;
+      // O botão diz o que vai exportar: Convidados segue o seletor Casamento | Pre Wedding
+      $("exportCsv").textContent = state.tab === "convidados"
+        ? `⬇ Exportar CSV (${state.event === "prewedding" ? "Pre Wedding" : "Casamento"})`
+        : "⬇ Exportar CSV (respostas do site)";
       const gifts = state.tab === "presentes";
       document.querySelectorAll(".rsvp-only").forEach((n) => n.classList.toggle("hidden", gifts));
       $("giftsPanel").classList.toggle("hidden", !gifts);
