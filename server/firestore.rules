@@ -66,6 +66,11 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Mapa de mesas (posição, nome, setor e tipo de cada mesa): só admins
+    match /config/mesas {
+      allow read, write: if isAdmin();
+    }
+
     // Lista de convidados: só admins
     match /convidados/{id} {
       allow read, write: if isAdmin();

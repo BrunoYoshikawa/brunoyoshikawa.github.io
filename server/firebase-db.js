@@ -32,6 +32,9 @@ const CONVIDADOS = "convidados";
 // Presentes no cartão: o site cria com status "aguardando"; o verificador
 // (verificador/index.js, GitHub Actions) muda para "pago" (Stripe) ou "nao_pago" (prazo)
 const PRESENTES = "presentes";
+// Mapa de mesas (admin-mesas.html): imagem do layout, posição e grupo de cada mesa.
+// Cada convidado guarda a sua mesa no campo "mesa" (ex.: "M6").
+const MESAS_DOC = ["config", "mesas"];
 
 /**
  * Database Service for RSVP
@@ -124,6 +127,17 @@ export const dbService = {
 
   // Admin: importa convidados em lote ({ id, ...dados }). Mesmo id = atualiza (merge),
   // então importar o mesmo CSV duas vezes não duplica e campos fora do CSV são mantidos.
+  // Admin: escuta a configuração do mapa de mesas (null se ainda não existe)
+  subscribeToSeating(callback, onError) {
+    return onSnapshot(doc(db, ...MESAS_DOC), (snap) => callback(snap.exists() ? snap.data() : null), onError);
+  },
+
+  // Admin: salva campos da configuração do mapa (merge: só o que for enviado muda)
+  async saveSeating(data) {
+    await setDoc(doc(db, ...MESAS_DOC), { ...data, atualizadoEm: serverTimestamp() }, { merge: true });
+    return { success: true };
+  },
+
   async importGuests(guests) {
     for (let i = 0; i < guests.length; i += 400) {
       const batch = writeBatch(db);

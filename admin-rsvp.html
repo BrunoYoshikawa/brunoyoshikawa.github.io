@@ -132,6 +132,7 @@
       <h1 class="section-title">Gestão de RSVP</h1>
       <div class="topbar-right">
         <span id="saveStatus"></span>
+        <a href="./admin-mesas.html" target="_blank" rel="noopener" class="btn btn-ghost" title="Abre o mapa de mesas em outra aba">🪑 Mapa de mesas</a>
         <button id="authBtn" class="btn btn-ghost">Entrar com Google</button>
       </div>
     </div>
@@ -208,6 +209,7 @@
 
   <script type="module">
     import { dbService, authService } from "./server/firebase-db.js";
+    import { DEFAULT_MESAS, mesaLabel } from "./server/mesas-padrao.js";
 
     // ====== Configuração ======
     const STATUS = {
@@ -234,6 +236,8 @@
           { key: "rsvp", label: "Casamento", type: "status", dateKey: "dataConfirmacao" },
           { key: "rsvpPreWedding", label: "Pre Wedding", type: "status", dateKey: "dataConfirmacaoPreWedding", requires: "preWedding" },
           { key: "nome", label: "Nome" },
+          // Mesa (lugar marcado) ou região (mesa livre do grupo); as mesas vêm do mapa (admin-mesas.html)
+          { key: "mesa", label: "Mesa / região", type: "select", options: () => state.mesas.map((m) => [m.id, mesaLabel(m)]) },
           { key: "noivoResponsavel", label: "Noivo", type: "select" },
           { key: "tipoConvidado", label: "Tipo", type: "select" },
           { key: "categoria", label: "Categoria", type: "select" },
@@ -244,7 +248,7 @@
           { key: "convidadoPrincipal", label: "Principal?", type: "bool" },
           { key: "observacao", label: "Observação" },
         ],
-        search: ["nome", "telefone", "categoria", "observacao"],
+        search: ["nome", "telefone", "categoria", "observacao", "mesa"],
         update: dbService.updateGuest,
         remove: dbService.deleteGuest,
       },
@@ -270,6 +274,7 @@
     const state = {
       tab: "convidados",
       event: "casamento",
+      mesas: DEFAULT_MESAS, // substituídas pela configuração salva no mapa de mesas
       data: { convidados: [], respostas: [], presentes: [] },
       sort: { convidados: { key: "nome", dir: 1 }, respostas: { key: "timestamp", dir: -1 } },
       filters: { search: "", status: "", noivo: "", tipo: "", categoria: "" },
@@ -438,7 +443,9 @@
       if (col.type === "select") {
         const select = el("select", { class: "field-select", dataset: { key: col.key } });
         select.add(new Option("—", ""));
-        optionsFor(col.key).forEach((o) => select.add(new Option(o, o)));
+        const opts = col.options ? col.options() : optionsFor(col.key).map((o) => [o, o]);
+        if (value && !opts.some(([v]) => v === value)) opts.push([value, value]); // valor antigo que não está mais na lista
+        opts.forEach(([v, label]) => select.add(new Option(label, v)));
         select.value = value ?? "";
         return select;
       }
@@ -550,6 +557,7 @@
       if (col.type === "bool") return v ? "Sim" : "Não";
       if (col.type === "confirmDate") return fmtDate(v);
       if (col.type === "date") return v ? new Date(v).toLocaleString("pt-BR") : "";
+      if (col.options) return col.options().find(([id]) => id === v)?.[1] ?? v ?? "";
       return v ?? "";
     }
 
@@ -674,6 +682,7 @@
       // Mudou o status -> registra a data da resposta
       view.columns.filter((c) => c.dateKey && c.key in changes)
         .forEach((c) => (update[c.dateKey] = changes[c.key] == null || changes[c.key] === "aguardando" ? null : today()));
+      if ("mesa" in changes) update.mesaNumeracao = 2; // mesa já na numeração nova (ver server/mesas-padrao.js)
       await view.update(id, update);
       delete state.pending[tab][id];
       log(`${tab}/${id} salvo`, "success", update);
@@ -967,6 +976,10 @@
           log(`Respostas sincronizadas: ${data.length}`, "success");
           render();
         }, onError("respostas")),
+        dbService.subscribeToSeating((cfg) => {
+          state.mesas = cfg?.mesas?.length ? cfg.mesas : DEFAULT_MESAS;
+          render();
+        }, onError("mapa de mesas")),
         dbService.subscribeToGifts((data) => {
           state.data.presentes = data;
           log(`Presentes sincronizados: ${data.length}`, "success");

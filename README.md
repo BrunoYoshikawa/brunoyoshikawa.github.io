@@ -19,6 +19,7 @@ Site do casamento de Bruno & Elizabete (01/11/2026, Fazenda Fagundes — Mairipo
 ├── home.html             # Página principal: casamento, local, traje e formulário de RSVP
 ├── presentes.html        # Lista de presentes (Pix / cartão + mensagem para os noivos)
 ├── admin-rsvp.html       # Painel de gestão de RSVP e convidados (login Google, só admins)
+├── admin-mesas.html      # Mapa de mesas interativo (login Google, só admins)
 ├── script.js             # Configuração do casamento, traduções (PT/EN), RSVP, Pix e presentes
 ├── styles.css            # Estilos do site
 ├── assets/               # Imagens (fotos dos presentes, bandeiras, ícones)
@@ -27,7 +28,8 @@ Site do casamento de Bruno & Elizabete (01/11/2026, Fazenda Fagundes — Mairipo
 │   └── gerar-pdf.html    # Gera o PDF do convite (html2canvas + jsPDF)
 ├── server/
 │   ├── firebase-config.js  # Configuração pública do Firebase e chave do App Check
-│   ├── firebase-db.js      # Acesso ao Firestore (RSVP, convidados, presentes) e login Google
+│   ├── firebase-db.js      # Acesso ao Firestore (RSVP, convidados, presentes, mesas) e login Google
+│   ├── mesas-padrao.js     # Mesas padrão do mapa (posição, setor, grupo; sem nomes de convidados)
 │   └── firestore.rules     # Regras de segurança do Firestore
 ├── verificador/          # Confirmação dos presentes pagos no Stripe (roda no GitHub Actions)
 │   ├── index.js          # Busca pagamentos no Stripe, atualiza o Firestore e envia e-mails (Resend)
@@ -67,6 +69,15 @@ Os textos traduzíveis ficam no objeto `I18N` (chaves `pt` e `en`) do mesmo arqu
 - Login com conta Google. Só os e-mails listados na função `isAdmin()` de [`server/firestore.rules`](server/firestore.rules) conseguem ler e editar os dados.
 - Mostra as respostas do RSVP em tempo real e permite editar/remover.
 - Aba **Presentes**: presentes no cartão com status **pago**, **aguardando** ou **não pago** (somente leitura, o status vem do Stripe).
+- Coluna **Mesa / região** na tabela de convidados: mesa com lugar marcado (padrinhos e família) ou mesa livre da região do grupo.
+
+### Mapa de mesas (`admin-mesas.html`)
+
+- Mesmo login do painel. A planta fica no centro, com as mesas clicáveis e coloridas por setor (borda tracejada = mesa livre da região); à direita, a lista de convidados com busca. Clicar numa pessoa destaca a mesa dela; clicar numa mesa ou num setor mostra quem está lá.
+- A planta é fixa: `assets/layout-festa.jpg`, recortada da página "Planta Completa" do PDF da decoração. As posições padrão das mesas (`server/mesas-padrao.js`) são em % dessa imagem.
+- **Mudar de mesa**: clicar no nome e usar "Mover para", ou arrastar o nome até a mesa. Grava na hora o campo `mesa` do convidado no Firestore (o mesmo banco do site publicado). Para backup, use "Exportar CSV" na Gestão de RSVP, que inclui a coluna Mesa / região.
+- **Editar mesas**: arrastar as mesas na planta e mudar nome do grupo, setor e tipo (marcada ou livre). As edições ficam no Firestore (`config/mesas`, só admins).
+- A lista de convidados com nomes e telefones nunca deve ser salva no repositório (público): o `.gitignore` bloqueia `convidados-*.csv` e a pasta `privado/`.
 - Gerencia a coleção `convidados`, incluindo **importação de CSV** exportado da aba "Lista de Convidados" do Google Sheets (a importação faz merge, então importar o mesmo arquivo de novo não duplica registros).
 
 ### Presentes (`presentes.html`)

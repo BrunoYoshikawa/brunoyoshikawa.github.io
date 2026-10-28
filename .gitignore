@@ -17,3 +17,7 @@ verificador/node_modules/
 verificador/.env*
 .firebase/
 *-debug.log
+
+# Dados pessoais dos convidados (nunca publicar: o repositório é público)
+convidados-*.csv
+privado/

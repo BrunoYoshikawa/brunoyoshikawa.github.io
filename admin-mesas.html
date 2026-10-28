@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Mapa de mesas</title>
+  <link rel="icon" href="./favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon-32.png" />
+  <link rel="stylesheet" href="styles.css?v=20261021i">
+  <style>
+    body { margin: 0; background: var(--bg); }
+    .wrap { max-width: 1500px; margin: 0 auto; padding: 24px 20px 40px; }
+    .topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .topbar h1 { margin: 0; font-family: "Playfair Display", Georgia, serif; font-size: 30px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    #status { font-size: 13px; color: var(--text-muted); }
+    .empty { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }
+    .hidden { display: none !important; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .toolbar .btn { height: 36px; padding: 0 12px; font-size: 14px; }
+    .toolbar .spacer { flex: 1; }
+    .btn.is-on { background: var(--primary); color: #fff; border-color: transparent; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 18px; align-items: start; }
+    .side, .side * { min-width: 0; }
+    .sel-sub, .sel-title span { overflow-wrap: anywhere; }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+    /* Mapa */
+    .map-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 12px; }
+    .map-scroll { overflow: auto; max-height: 74vh; border-radius: 10px; }
+    .map { position: relative; user-select: none; width: calc(var(--zoom, 1) * 100%); }
+    .zoom { display: inline-flex; gap: 4px; align-items: center; margin-left: auto; }
+    .zoom button { min-width: 34px; height: 30px; border: 1px solid var(--border); background: #fff; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer; }
+    .zoom span { font-size: 12px; color: var(--text-muted); min-width: 40px; text-align: center; }
+    .map img { display: block; width: 100%; height: auto; border-radius: 10px; transition: opacity .2s ease; }
+    .map.has-sel img { opacity: .38; } /* com algo selecionado, a planta fica mais clara e as mesas saltam */
+    .map.editing { outline: 2px dashed var(--primary); outline-offset: 4px; border-radius: 10px; }
+    .marker {
+      position: absolute; transform: translate(-50%, -50%);
+      display: grid; place-items: center;
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 4px solid var(--c); background: color-mix(in srgb, var(--c) 35%, white);
+      color: color-mix(in srgb, var(--c) 80%, black); font: 800 14px Inter, system-ui, sans-serif; cursor: pointer; padding: 0;
+      box-shadow: 0 0 0 3px #fff, 0 4px 12px rgba(0, 0, 0, .25);
+      transition: scale .15s ease, box-shadow .15s ease, opacity .15s ease, background-color .15s ease;
+    }
+    .marker.comunitaria { width: 78px; height: 46px; border-radius: 12px; }
+    .marker.livre { border-style: dashed; }
+    .marker:hover { scale: 1.15; z-index: 2; }
+    .marker.selected { background: var(--c); color: #fff; scale: 1.3; z-index: 3; box-shadow: 0 0 0 4px #fff, 0 0 0 11px color-mix(in srgb, var(--c) 50%, transparent), 0 8px 18px rgba(0, 0, 0, .35); }
+    .marker.dim { opacity: .3; }
+    .marker.soft { opacity: .6; }
+    .marker.drop-target { scale: 1.35; background: var(--c); color: #fff; z-index: 4; }
+    .marker.pulse { animation: pulse 1s ease 2; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 4px #fff, 0 0 0 18px color-mix(in srgb, var(--c) 35%, transparent); } }
+    .map.editing .marker { cursor: grab; }
+    .map-empty { padding: 80px 20px; text-align: center; color: var(--text-muted); border: 2px dashed var(--border); border-radius: 10px; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: #fff; border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+    .chip .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+    .chip.active { border-color: var(--c, var(--primary)); background: color-mix(in srgb, var(--c, var(--primary)) 14%, white); font-weight: 600; }
+    .hint { font-size: 12px; color: var(--text-muted); margin: 8px 2px 0; }
+
+    /* Painel da direita */
+    .side { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; max-height: calc(100vh - 40px); position: sticky; top: 20px; }
+    .side-head { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); display: grid; gap: 10px; }
+    .side-head input[type=search] { width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; font: inherit; }
+    .sel { display: none; gap: 6px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--c, var(--primary)) 10%, white); border: 1px solid color-mix(in srgb, var(--c, var(--primary)) 35%, white); }
+    .sel.show { display: grid; }
+    .sel-title { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-weight: 700; }
+    .sel-sub { font-size: 13px; color: var(--text-muted); }
+    .sel button.clear { border: 0; background: none; color: var(--primary); cursor: pointer; font: inherit; font-size: 13px; }
+    .sel-edit { display: grid; gap: 6px; margin-top: 4px; }
+    .sel-edit input, .sel-edit select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 13px; }
+    .sel-edit label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+    .opts { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted); }
+    .opts label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+    .list { overflow: auto; padding: 6px; }
+    .person { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; width: 100%; text-align: left; padding: 8px 10px; border: 0; border-radius: 10px; background: none; cursor: pointer; font: inherit; }
+    .person:hover { background: var(--bg-muted); }
+    .person[draggable=true] { cursor: grab; }
+    .person.dragging { opacity: .5; }
+    .who { display: none; gap: 8px; padding: 10px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); }
+    .who.show { display: grid; }
+    .who-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 700; }
+    .who-row { display: flex; gap: 6px; }
+    .who-row select { flex: 1 1 0; width: 0; min-width: 0; padding: 7px 8px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 13px; }
+    .who-row .btn { height: 34px; padding: 0 12px; font-size: 13px; }
+    .person.active { background: color-mix(in srgb, var(--primary) 12%, white); }
+    .person .nome { font-weight: 600; font-size: 14px; }
+    .person .meta { grid-column: 1; font-size: 12px; color: var(--text-muted); }
+    .person .tag { grid-row: 1 / span 2; grid-column: 2; font-size: 12px; font-weight: 700; color: #fff; background: var(--c, #9aa3a6); border-radius: 99px; padding: 3px 9px; white-space: nowrap; }
+    .group-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); padding: 10px 10px 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>🪑 Mapa de mesas</h1>
+      <div class="topbar-right">
+        <span id="status"></span>
+        <a href="./admin-rsvp.html" class="btn btn-ghost">← Gestão de RSVP</a>
+        <button id="authBtn" class="btn btn-ghost">Entrar com Google</button>
+      </div>
+    </div>
+
+    <div id="loginMsg" class="empty">Faça login com uma conta de admin para ver o mapa.</div>
+
+    <div id="app" class="hidden">
+      <div class="toolbar">
+        <span class="spacer"></span>
+        <button id="editBtn" class="btn btn-ghost" title="Arraste as mesas para a posição certa e edite nome, setor e tipo">✎ Editar mesas</button>
+        <button id="saveBtn" class="btn btn-primary hidden">💾 Salvar mesas</button>
+        <button id="resetBtn" class="btn btn-ghost hidden" title="Volta posições, nomes e setores das mesas para o padrão">↺ Restaurar padrão</button>
+        <button id="cancelBtn" class="btn btn-ghost hidden">Cancelar</button>
+      </div>
+
+      <div class="layout">
+        <div class="map-box">
+          <div class="map-scroll" id="mapScroll"><div class="map" id="map"></div></div>
+          <div class="legend"><span id="legend" style="display:contents"></span>
+            <span class="zoom">
+              <button id="zoomOut" title="Diminuir">−</button><span id="zoomLabel">100%</span><button id="zoomIn" title="Aumentar">+</button>
+              <button id="zoomFit" title="Ampliar na área das mesas">⤢ Focar nas mesas</button>
+            </span>
+          </div>
+          <p class="hint" id="hint">Clique numa mesa ou num setor para ver quem está lá. Para mudar alguém de mesa, clique no nome ou arraste o nome até a mesa. Borda tracejada = mesa livre (região do grupo).</p>
+        </div>
+
+        <aside class="side">
+          <div class="side-head">
+            <input type="search" id="search" placeholder="🔍 Buscar convidado...">
+            <div class="who" id="who"></div>
+            <div class="sel" id="sel"></div>
+            <div class="opts">
+              <label><input type="checkbox" id="onlyConfirmed" checked> Só confirmados</label>
+              <span id="countInfo"></span>
+            </div>
+          </div>
+          <div class="list" id="list"></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { dbService, authService } from "./server/firebase-db.js";
+    import { DEFAULT_MESAS, SETORES, mesaLabel, NUMERACAO, RENUMERAR_V1 } from "./server/mesas-padrao.js";
+
+    const $ = (id) => document.getElementById(id);
+    const el = (tag, props = {}, ...children) => {
+      const n = document.createElement(tag);
+      Object.entries(props).forEach(([k, v]) => {
+        if (k === "class") n.className = v;
+        else if (k === "dataset") Object.assign(n.dataset, v);
+        else if (k === "style") n.style.cssText = v;
+        else n[k] = v;
+      });
+      n.append(...children.filter((c) => c != null));
+      return n;
+    };
+    const norm = (v) => String(v ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+    const isConfirmed = (g) => norm(g.rsvp) === "confirmado";
+    const corSetor = (s) => SETORES[s]?.cor || "#9aa3a6";
+    // Planta fixa do salão (recortada do PDF da decoração). As posições padrão das mesas são em % desta imagem.
+    const LAYOUT_IMG = "./assets/layout-festa.jpg";
+    function flash(text) { $("status").textContent = text; setTimeout(() => ($("status").textContent = ""), 3000); }
+
+    const state = {
+      guests: [],
+      cfg: null,               // config/mesas salva no Firestore (só as mesas editadas)
+      mesas: DEFAULT_MESAS,    // mesas em uso (salvas ou padrão)
+      draft: null,             // cópia das mesas durante a edição
+      sel: null,               // { type: "mesa" | "setor" | "sem", id }
+      search: "",
+      onlyConfirmed: true,
+      activeGuest: null,
+    };
+    const mesas = () => state.draft || state.mesas;
+    const mesaById = (id) => mesas().find((m) => m.id === id);
+    const visibleGuests = () => state.guests.filter((g) => !state.onlyConfirmed || isConfirmed(g) || g.mesa);
+    const guestsAt = (id) => visibleGuests().filter((g) => g.mesa === id);
+
+    // ====== Mapa ======
+    function renderMap() {
+      const map = $("map");
+      map.classList.toggle("editing", !!state.draft);
+      map.classList.toggle("has-sel", !!state.sel);
+      const img = map.querySelector("img") || el("img", { src: LAYOUT_IMG, alt: "Layout da festa", onload: () => { if (!autoFitted) { autoFitted = true; fitToTables(); } } });
+      const selMesa = state.sel?.type === "mesa" ? state.sel.id : null;
+      const selSetor = state.sel?.type === "setor" ? state.sel.id : null;
+      const markers = mesas().map((m) => {
+        const n = guestsAt(m.id).length;
+        const on = m.id === selMesa || (selSetor && m.setor === selSetor);
+        const dim = (selSetor && m.setor !== selSetor) || state.sel?.type === "sem";
+        const soft = selMesa && m.id !== selMesa;
+        const b = el("button", {
+          class: `marker ${m.tipo} ${m.marcada ? "" : "livre"} ${on ? "selected" : ""} ${dim ? "dim" : ""} ${soft ? "soft" : ""}`,
+          style: `left:${m.x}%;top:${m.y}%;--c:${corSetor(m.setor)}`,
+          title: `${mesaLabel(m)} — ${n} pessoa(s)`,
+          dataset: { id: m.id },
+          textContent: m.id,
+        });
+        return b;
+      });
+      map.replaceChildren(img, ...markers);
+    }
+
+    function renderLegend() {
+      const chips = Object.entries(SETORES).map(([k, s]) => {
+        const n = mesas().filter((m) => m.setor === k).reduce((t, m) => t + guestsAt(m.id).length, 0);
+        return el("button", { class: `chip ${state.sel?.type === "setor" && state.sel.id === k ? "active" : ""}`, style: `--c:${s.cor}`, dataset: { setor: k } },
+          el("span", { class: "dot" }), `${s.nome} · ${n}`);
+      });
+      const ids = new Set(mesas().map((m) => m.id));
+      const sem = visibleGuests().filter((g) => !g.mesa || !ids.has(g.mesa)).length;
+      chips.push(el("button", { class: `chip ${state.sel?.type === "sem" ? "active" : ""}`, dataset: { sem: "1" } }, `Sem mesa · ${sem}`));
+      $("legend").replaceChildren(...chips);
+    }
+
+    // ====== Painel da direita ======
+    // Pessoa selecionada: mostra a mesa atual e permite mover para outra
+    function renderWho() {
+      const box = $("who");
+      const g = state.guests.find((x) => x.id === state.activeGuest);
+      box.classList.toggle("show", !!g);
+      if (!g) return box.replaceChildren();
+      const fechar = el("button", { class: "clear", textContent: "✕", title: "Fechar", style: "border:0;background:none;cursor:pointer;color:var(--primary)" });
+      fechar.onclick = () => { state.activeGuest = null; renderAll(); };
+      const sel = el("select", {});
+      sel.add(new Option("— Sem mesa —", ""));
+      mesas().forEach((m) => {
+        const n = guestsAt(m.id).length;
+        sel.add(new Option(`${mesaLabel(m)} · ${m.marcada ? `${n}/10` : `${n} pessoas`}`, m.id));
+      });
+      sel.value = mesaById(g.mesa) ? g.mesa : "";
+      const mover = el("button", { class: "btn btn-primary", textContent: "Mover" });
+      mover.onclick = () => moveGuest(g.id, sel.value);
+      box.replaceChildren(
+        el("div", { class: "who-title" }, el("span", { textContent: g.nome }), fechar),
+        el("div", { class: "sel-sub", textContent: [g.categoria, g.tipoConvidado === "Padrinho" ? "Padrinho" : ""].filter(Boolean).join(" · ") }),
+        el("div", { class: "who-row" }, sel, mover));
+    }
+
+    async function moveGuest(id, mesaId) {
+      const g = state.guests.find((x) => x.id === id);
+      if (!g || (g.mesa || "") === mesaId) return;
+      const m = mesaById(mesaId);
+      if (m?.marcada && guestsAt(m.id).length >= 10 && !confirm(`${mesaLabel(m)} já tem 10 pessoas. Mover ${g.nome} mesmo assim?`)) return;
+      try {
+        await dbService.updateGuest(id, { mesa: mesaId, mesaNumeracao: NUMERACAO });
+        if (state.activeGuest === id) state.sel = m ? { type: "mesa", id: m.id } : { type: "sem" }; // o mapa acompanha a pessoa
+        renderAll();
+        flash(`✓ ${g.nome} → ${m ? mesaLabel(m) : "sem mesa"}`);
+      } catch (err) { console.error(err); flash("Erro ao mover: " + err.message); }
+    }
+
+    function renderSelection() {
+      const box = $("sel");
+      box.classList.toggle("show", !!state.sel);
+      if (!state.sel) return box.replaceChildren();
+      const clear = el("button", { class: "clear", textContent: "✕ limpar" });
+      clear.onclick = () => select(null);
+      if (state.sel.type === "mesa") {
+        const m = mesaById(state.sel.id);
+        if (!m) return select(null);
+        const n = guestsAt(m.id).length;
+        box.style.setProperty("--c", corSetor(m.setor));
+        const sub = m.marcada ? `Lugar marcado · ${n}/10 pessoas` : `Mesa livre da região · ${n} pessoas para 10 lugares`;
+        const children = [el("div", { class: "sel-title" }, el("span", {}, mesaLabel(m)), clear), el("div", { class: "sel-sub", textContent: `${SETORES[m.setor]?.nome || ""} · ${sub}` })];
+        if (state.draft) children.push(editForm(m));
+        box.replaceChildren(...children);
+      } else if (state.sel.type === "setor") {
+        const s = SETORES[state.sel.id];
+        box.style.setProperty("--c", s.cor);
+        const ms = mesas().filter((m) => m.setor === state.sel.id);
+        const n = ms.reduce((t, m) => t + guestsAt(m.id).length, 0);
+        box.replaceChildren(el("div", { class: "sel-title" }, el("span", {}, s.nome), clear), el("div", { class: "sel-sub", textContent: `${ms.length} mesas · ${n} pessoas` }));
+      } else {
+        box.style.removeProperty("--c");
+        box.replaceChildren(el("div", { class: "sel-title" }, el("span", {}, "Sem mesa definida"), clear), el("div", { class: "sel-sub", textContent: "Defina a mesa na Gestão de RSVP ou importe o plano." }));
+      }
+    }
+
+    // Edição de uma mesa (modo "Editar mesas")
+    function editForm(m) {
+      const grupo = el("input", { value: m.grupo, placeholder: "Nome do grupo" });
+      grupo.oninput = () => { m.grupo = grupo.value; renderMap(); };
+      const setor = el("select", {});
+      Object.entries(SETORES).forEach(([k, s]) => setor.add(new Option(s.nome, k)));
+      setor.value = m.setor;
+      setor.onchange = () => { m.setor = setor.value; renderAll(); };
+      const marcada = el("input", { type: "checkbox", checked: m.marcada });
+      marcada.onchange = () => { m.marcada = marcada.checked; renderAll(); };
+      return el("div", { class: "sel-edit" }, grupo, setor, el("label", {}, marcada, "Lugar marcado (desmarcado = mesa livre da região)"));
+    }
+
+    function renderList() {
+      const q = norm(state.search);
+      let rows = visibleGuests();
+      if (state.sel?.type === "mesa") rows = rows.filter((g) => g.mesa === state.sel.id);
+      if (state.sel?.type === "setor") {
+        const ids = new Set(mesas().filter((m) => m.setor === state.sel.id).map((m) => m.id));
+        rows = rows.filter((g) => ids.has(g.mesa));
+      }
+      if (state.sel?.type === "sem") {
+        const ids = new Set(mesas().map((m) => m.id));
+        rows = rows.filter((g) => !g.mesa || !ids.has(g.mesa));
+      }
+      if (q) rows = rows.filter((g) => norm(g.nome).includes(q) || norm(g.categoria).includes(q));
+      rows.sort((a, b) => String(a.mesa || "~").localeCompare(String(b.mesa || "~"), "pt", { numeric: true }) || String(a.nome).localeCompare(String(b.nome), "pt"));
+      $("countInfo").textContent = `${rows.length} pessoa(s)`;
+
+      const items = [];
+      let lastMesa = null;
+      for (const g of rows) {
+        const m = mesaById(g.mesa);
+        const key = m ? m.id : "";
+        if (key !== lastMesa && state.sel?.type !== "mesa") {
+          items.push(el("div", { class: "group-title", textContent: m ? mesaLabel(m) : "Sem mesa" }));
+          lastMesa = key;
+        }
+        const meta = [g.categoria, g.tipoConvidado === "Padrinho" ? "Padrinho" : "", isConfirmed(g) ? "" : "não confirmado"].filter(Boolean).join(" · ");
+        items.push(el("button", { class: `person ${state.activeGuest === g.id ? "active" : ""}`, dataset: { id: g.id }, draggable: true, title: "Clique para mover de mesa, ou arraste até uma mesa do mapa", style: `--c:${m ? corSetor(m.setor) : "#9aa3a6"}` },
+          el("span", { class: "nome", textContent: g.nome }),
+          el("span", { class: "tag", textContent: m ? m.id : "—" }),
+          el("span", { class: "meta", textContent: meta })));
+      }
+      if (!items.length) items.push(el("div", { class: "empty", textContent: state.guests.length ? "Ninguém aqui com esses filtros." : "Carregando convidados..." }));
+      $("list").replaceChildren(...items);
+    }
+
+    function renderAll() { renderMap(); renderLegend(); renderWho(); renderSelection(); renderList(); }
+    function select(sel) { state.sel = sel; renderAll(); }
+
+    // ====== Interações ======
+    $("map").addEventListener("click", (e) => {
+      const b = e.target.closest(".marker");
+      if (!b || Date.now() - lastDragEnd < 300) return; // o clique que encerra um arraste não seleciona
+      select(state.sel?.type === "mesa" && state.sel.id === b.dataset.id ? null : { type: "mesa", id: b.dataset.id });
+    });
+    $("legend").addEventListener("click", (e) => {
+      const c = e.target.closest(".chip");
+      if (!c) return;
+      if (c.dataset.sem) return select(state.sel?.type === "sem" ? null : { type: "sem" });
+      select(state.sel?.type === "setor" && state.sel.id === c.dataset.setor ? null : { type: "setor", id: c.dataset.setor });
+    });
+    $("list").addEventListener("click", (e) => {
+      const p = e.target.closest(".person");
+      if (!p) return;
+      const g = state.guests.find((x) => x.id === p.dataset.id);
+      state.activeGuest = g.id;
+      if (g.mesa && mesaById(g.mesa)) {
+        state.sel = { type: "mesa", id: g.mesa };
+        renderAll();
+        const mk = $("map").querySelector(`.marker[data-id="${g.mesa}"]`);
+        if (mk) { mk.classList.add("pulse"); mk.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+      } else renderAll();
+    });
+    $("list").addEventListener("dragstart", (e) => {
+      const p = e.target.closest(".person");
+      if (!p) return;
+      e.dataTransfer.setData("text/guest", p.dataset.id);
+      e.dataTransfer.effectAllowed = "move";
+      p.classList.add("dragging");
+    });
+    $("list").addEventListener("dragend", (e) => e.target.closest(".person")?.classList.remove("dragging"));
+    const clearDrop = () => $("map").querySelectorAll(".drop-target").forEach((x) => x.classList.remove("drop-target"));
+    $("map").addEventListener("dragover", (e) => {
+      const mk = e.target.closest(".marker");
+      if (!mk || !e.dataTransfer.types.includes("text/guest")) return;
+      e.preventDefault();
+      clearDrop();
+      mk.classList.add("drop-target");
+    });
+    $("map").addEventListener("dragleave", (e) => { if (!e.relatedTarget?.closest?.(".marker")) clearDrop(); });
+    $("map").addEventListener("drop", (e) => {
+      const mk = e.target.closest(".marker");
+      clearDrop();
+      const id = e.dataTransfer.getData("text/guest");
+      if (!mk || !id) return;
+      e.preventDefault();
+      moveGuest(id, mk.dataset.id);
+    });
+    $("search").addEventListener("input", (e) => { state.search = e.target.value; renderList(); });
+    $("onlyConfirmed").addEventListener("change", (e) => { state.onlyConfirmed = e.target.checked; renderAll(); });
+
+    // ====== Zoom: amplia a planta e rola até as mesas ======
+    let zoom = 1, autoFitted = false;
+    function setZoom(z, focus) {
+      zoom = Math.min(4, Math.max(1, Math.round(z * 4) / 4));
+      $("map").style.setProperty("--zoom", zoom);
+      $("zoomLabel").textContent = Math.round(zoom * 100) + "%";
+      requestAnimationFrame(() => {
+        const box = $("mapScroll"), img = $("map").querySelector("img");
+        if (!img) return;
+        const [fx, fy] = focus || [50, 50];
+        box.scrollLeft = (fx / 100) * img.clientWidth - box.clientWidth / 2;
+        box.scrollTop = (fy / 100) * img.clientHeight - box.clientHeight / 2;
+      });
+    }
+    function fitToTables() {
+      const xs = mesas().map((m) => m.x), ys = mesas().map((m) => m.y);
+      const w = Math.max(...xs) - Math.min(...xs) + 12;
+      setZoom(Math.min(3, 100 / w), [(Math.max(...xs) + Math.min(...xs)) / 2, (Math.max(...ys) + Math.min(...ys)) / 2]);
+    }
+    const center = () => { const b = $("mapScroll"), img = $("map").querySelector("img"); return img ? [((b.scrollLeft + b.clientWidth / 2) / img.clientWidth) * 100, ((b.scrollTop + b.clientHeight / 2) / img.clientHeight) * 100] : [50, 50]; };
+    $("zoomIn").onclick = () => setZoom(zoom + 0.5, center());
+    $("zoomOut").onclick = () => setZoom(zoom - 0.5, center());
+    $("zoomFit").onclick = fitToTables;
+
+    // ====== Editar mesas: arrastar posição + nome/setor/tipo ======
+    let drag = null, dragMoved = false, lastDragEnd = 0;
+    $("map").addEventListener("pointerdown", (e) => {
+      const b = e.target.closest(".marker");
+      if (!state.draft || !b) return;
+      drag = { id: b.dataset.id, startX: e.clientX, startY: e.clientY };
+      dragMoved = false;
+      b.setPointerCapture(e.pointerId);
+    });
+    $("map").addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      if (Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY) > 3) dragMoved = true;
+      if (!dragMoved) return;
+      const r = $("map").querySelector("img").getBoundingClientRect();
+      const m = mesaById(drag.id);
+      m.x = Math.round(Math.min(100, Math.max(0, ((e.clientX - r.left) / r.width) * 100)) * 10) / 10;
+      m.y = Math.round(Math.min(100, Math.max(0, ((e.clientY - r.top) / r.height) * 100)) * 10) / 10;
+      const mk = $("map").querySelector(`.marker[data-id="${drag.id}"]`);
+      mk.style.left = m.x + "%"; mk.style.top = m.y + "%";
+    });
+    const endDrag = () => { if (drag && dragMoved) lastDragEnd = Date.now(); drag = null; dragMoved = false; };
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach((ev) => $("map").addEventListener(ev, endDrag));
+
+    function setEditing(on) {
+      state.draft = on ? structuredClone(state.mesas) : null;
+      $("editBtn").classList.toggle("hidden", on);
+      $("saveBtn").classList.toggle("hidden", !on);
+      $("cancelBtn").classList.toggle("hidden", !on);
+      $("resetBtn").classList.toggle("hidden", !on);
+      $("hint").textContent = on
+        ? "Modo edição: arraste as mesas para a posição certa. Clique numa mesa para mudar o nome do grupo, o setor e o tipo."
+        : "Clique numa mesa ou num setor para ver quem está lá. Para mudar alguém de mesa, clique no nome ou arraste o nome até a mesa. Borda tracejada = mesa livre (região do grupo).";
+      renderAll();
+    }
+    $("editBtn").onclick = () => setEditing(true);
+    $("cancelBtn").onclick = () => setEditing(false);
+    $("resetBtn").onclick = () => {
+      if (!confirm("Voltar todas as mesas para as posições e nomes padrão? (só vale depois de clicar em Salvar)")) return;
+      state.draft = structuredClone(DEFAULT_MESAS);
+      renderAll();
+    };
+    $("saveBtn").onclick = async () => {
+      try {
+        await dbService.saveSeating({ mesas: state.draft });
+        setEditing(false);
+        flash("✓ Mesas salvas");
+      } catch (err) {
+        console.error(err);
+        // Sem a regra de config/mesas publicada no Firestore, a gravação é negada (mesmo no localhost)
+        $("status").textContent = err.code === "permission-denied"
+          ? "⚠ Não salvou: publique as regras do Firestore (server/firestore.rules, bloco config/mesas) e tente de novo."
+          : "⚠ Erro ao salvar: " + err.message;
+      }
+    };
+
+    // ====== Nova numeração das mesas (out/2026): converte uma única vez o que foi salvo antes ======
+    // Cada convidado convertido (ou movido depois da mudança) ganha mesaNumeracao = 2, então nada é convertido duas vezes.
+    let migracaoFeita = false;
+    async function migrarNumeracao() {
+      if (migracaoFeita || !state.guests.length) return;
+      migracaoFeita = true;
+      const pendentes = state.guests.filter((g) => g.mesa && g.mesaNumeracao !== NUMERACAO);
+      const cfgAntiga = state.cfg?.mesas?.length && state.cfg.numeracao !== NUMERACAO;
+      if (!pendentes.length && !cfgAntiga) return;
+      const exemplo = "M5→M1, M4→M2, M2→M4, M1→M5, M13→M6, M14→M7, M6→M8, M7→M9 …";
+      if (!confirm(`As mesas foram renumeradas (${exemplo}).\n\nAtualizar as mesas já salvas de ${pendentes.length} convidado(s) para a numeração nova?`)) { migracaoFeita = false; return; }
+      try {
+        if (pendentes.length) await dbService.importGuests(pendentes.map((g) => ({ id: g.id, mesa: RENUMERAR_V1[g.mesa] || g.mesa, mesaNumeracao: NUMERACAO })));
+        if (cfgAntiga) await dbService.saveSeating({ mesas: state.cfg.mesas.map((m) => ({ ...m, id: RENUMERAR_V1[m.id] || m.id })), numeracao: NUMERACAO }).catch((err) => console.warn("config/mesas não convertida", err));
+        flash(`✓ Numeração nova aplicada a ${pendentes.length} convidado(s)`);
+      } catch (err) { console.error(err); migracaoFeita = false; flash("Erro ao converter a numeração: " + err.message); }
+    }
+
+    // ====== Login + dados ======
+    let unsubs = [];
+    authService.onChange((user) => {
+      unsubs.forEach((u) => u()); unsubs = [];
+      $("app").classList.toggle("hidden", !user);
+      $("loginMsg").classList.toggle("hidden", !!user);
+      $("authBtn").textContent = user ? `Sair (${user.email})` : "Entrar com Google";
+      if (!user) return;
+      const onError = (what) => (err) => { console.error(what, err); $("status").textContent = `Sem permissão para ler ${what} — confira as regras e o e-mail logado.`; };
+      unsubs = [
+        dbService.subscribeToGuests((data) => { state.guests = data; renderAll(); setTimeout(migrarNumeracao, 800); }, onError("convidados")),
+        dbService.subscribeToSeating((cfg) => {
+          state.cfg = cfg;
+          state.mesas = cfg?.mesas?.length ? cfg.mesas : DEFAULT_MESAS;
+          renderAll();
+        }, (err) => { console.warn("config/mesas indisponível, usando as mesas padrão", err); $("editBtn").title = "Para salvar edições, publique as regras do Firestore (config/mesas)."; }),
+      ];
+    });
+    $("authBtn").addEventListener("click", () => {
+      (document.getElementById("app").classList.contains("hidden") ? authService.signIn() : authService.signOut())
+        .catch((err) => { console.error(err); flash("Erro de login: " + err.message); });
+    });
+  </script>
+</body>
+</html>
