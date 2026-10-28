@@ -7,7 +7,7 @@
   <title>Mapa de mesas</title>
   <link rel="icon" href="./favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon-32.png" />
-  <link rel="stylesheet" href="styles.css?v=20261021i">
+  <link rel="stylesheet" href="styles.css?v=20261028b">
   <style>
     body { margin: 0; background: var(--bg); }
     .wrap { max-width: 1500px; margin: 0 auto; padding: 24px 20px 40px; }
@@ -148,8 +148,8 @@
   </div>
 
   <script type="module">
-    import { dbService, authService } from "./server/firebase-db.js";
-    import { DEFAULT_MESAS, SETORES, mesaLabel, NUMERACAO, RENUMERAR_V1 } from "./server/mesas-padrao.js";
+    import { dbService, authService } from "./server/firebase-db.js?v=20261028b";
+    import { DEFAULT_MESAS, SETORES, mesaLabel, NUMERACAO, RENUMERAR_V1 } from "./server/mesas-padrao.js?v=20261028b";
 
     const $ = (id) => document.getElementById(id);
     const el = (tag, props = {}, ...children) => {
@@ -456,7 +456,7 @@
     };
     $("saveBtn").onclick = async () => {
       try {
-        await dbService.saveSeating({ mesas: state.draft });
+        await dbService.saveSeating({ mesas: state.draft, numeracao: NUMERACAO });
         setEditing(false);
         flash("✓ Mesas salvas");
       } catch (err) {
@@ -474,16 +474,44 @@
     async function migrarNumeracao() {
       if (migracaoFeita || !state.guests.length) return;
       migracaoFeita = true;
+      // Só os convidados: as mesas salvas (config/mesas) já nasceram na numeração nova
       const pendentes = state.guests.filter((g) => g.mesa && g.mesaNumeracao !== NUMERACAO);
-      const cfgAntiga = state.cfg?.mesas?.length && state.cfg.numeracao !== NUMERACAO;
-      if (!pendentes.length && !cfgAntiga) return;
+      if (!pendentes.length) return;
       const exemplo = "M5→M1, M4→M2, M2→M4, M1→M5, M13→M6, M14→M7, M6→M8, M7→M9 …";
       if (!confirm(`As mesas foram renumeradas (${exemplo}).\n\nAtualizar as mesas já salvas de ${pendentes.length} convidado(s) para a numeração nova?`)) { migracaoFeita = false; return; }
       try {
-        if (pendentes.length) await dbService.importGuests(pendentes.map((g) => ({ id: g.id, mesa: RENUMERAR_V1[g.mesa] || g.mesa, mesaNumeracao: NUMERACAO })));
-        if (cfgAntiga) await dbService.saveSeating({ mesas: state.cfg.mesas.map((m) => ({ ...m, id: RENUMERAR_V1[m.id] || m.id })), numeracao: NUMERACAO }).catch((err) => console.warn("config/mesas não convertida", err));
+        await dbService.importGuests(pendentes.map((g) => ({ id: g.id, mesa: RENUMERAR_V1[g.mesa] || g.mesa, mesaNumeracao: NUMERACAO })));
         flash(`✓ Numeração nova aplicada a ${pendentes.length} convidado(s)`);
       } catch (err) { console.error(err); migracaoFeita = false; flash("Erro ao converter a numeração: " + err.message); }
+    }
+
+    // ====== Reparo: o número de cada mesa salva deve bater com a sua posição na planta ======
+    // (uma versão anterior da conversão de numeração podia embaralhar os números das mesas salvas)
+    function idsPelaPosicao(lista) {
+      const usados = new Set(), certo = {};
+      for (const m of lista) {
+        let melhor = null, dist = Infinity;
+        for (const d of DEFAULT_MESAS) {
+          const dd = Math.hypot(d.x - m.x, d.y - m.y);
+          if (dd < dist) { dist = dd; melhor = d; }
+        }
+        if (!melhor || dist > 6 || usados.has(melhor.id)) return null; // mesa arrastada para longe: não mexe
+        usados.add(melhor.id);
+        certo[m.id] = melhor.id;
+      }
+      return certo;
+    }
+    let reparoFeito = false;
+    async function repararNumeracaoMesas() {
+      if (reparoFeito || state.draft || !state.cfg?.mesas?.length) return;
+      reparoFeito = true;
+      const certo = idsPelaPosicao(state.cfg.mesas);
+      if (!certo || state.cfg.mesas.every((m) => certo[m.id] === m.id)) return;
+      if (!confirm("Os números das mesas salvas ficaram trocados (erro na conversão de numeração).\n\nCorrigir agora? Nome, setor, tipo e posição de cada mesa são mantidos.")) { reparoFeito = false; return; }
+      try {
+        await dbService.saveSeating({ mesas: state.cfg.mesas.map((m) => ({ ...m, id: certo[m.id] })), numeracao: NUMERACAO });
+        flash("✓ Numeração das mesas corrigida");
+      } catch (err) { console.error(err); reparoFeito = false; $("status").textContent = "⚠ Não consegui corrigir a numeração: " + err.message; }
     }
 
     // ====== Login + dados ======
@@ -501,6 +529,7 @@
           state.cfg = cfg;
           state.mesas = cfg?.mesas?.length ? cfg.mesas : DEFAULT_MESAS;
           renderAll();
+          setTimeout(repararNumeracaoMesas, 500);
         }, (err) => { console.warn("config/mesas indisponível, usando as mesas padrão", err); $("editBtn").title = "Para salvar edições, publique as regras do Firestore (config/mesas)."; }),
       ];
     });

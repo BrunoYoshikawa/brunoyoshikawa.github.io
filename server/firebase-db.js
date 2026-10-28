@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, writeBatch, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
-import { firebaseConfig, RECAPTCHA_SITE_KEY } from "./firebase-config.js";
+import { firebaseConfig, RECAPTCHA_SITE_KEY } from "./firebase-config.js?v=20261028b";
 
 const app = initializeApp(firebaseConfig);
 

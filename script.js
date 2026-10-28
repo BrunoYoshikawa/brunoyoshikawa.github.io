@@ -540,7 +540,7 @@ function setupRSVPForm() {
     if (submitBtn) submitBtn.disabled = true;
 
     // Envia para o Firestore (server/firebase-db.js)
-    import("./server/firebase-db.js")
+    import("./server/firebase-db.js?v=20261028b")
       .then(({ dbService }) => dbService.submitRSVP(payload))
       .then(() => {
         notifyByEmail({ tipo: "rsvp", ...payload }).catch((err) => console.error("RSVP e-mail error:", err));
@@ -848,7 +848,7 @@ function setupGiftsPix() {
     form.querySelectorAll("button").forEach((b) => (b.disabled = true));
     let url = gift.cardUrl;
     try {
-      const { dbService } = await import("./server/firebase-db.js");
+      const { dbService } = await import("./server/firebase-db.js?v=20261028b");
       const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000));
       const id = await Promise.race([dbService.registerGift({
         presente: gift.name,

@@ -150,7 +150,7 @@ git push origin main
 
 O domínio personalizado é definido no arquivo `CNAME`.
 
-Ao alterar `styles.css` ou `script.js`, atualize o parâmetro de versão (`?v=...`) nas tags `<link>`/`<script>` dos HTMLs para evitar que os navegadores usem a versão antiga em cache.
+Ao alterar `styles.css`, `script.js` ou os módulos de `server/`, atualize o parâmetro de versão (`?v=...`) em todos os lugares: nas tags `<link>`/`<script>` dos HTMLs e nos `import` de `./server/firebase-db.js`, `./server/mesas-padrao.js` e `./firebase-config.js`. Sem isso, o navegador pode usar a versão antiga em cache (ex.: erro "saveSeating is not a function"). Use sempre o mesmo `?v=` numa página: o mesmo módulo com dois `?v=` diferentes carregaria o Firebase duas vezes.
 
 ### Regras do Firestore
 
